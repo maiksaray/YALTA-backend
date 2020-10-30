@@ -2,11 +2,11 @@ package models
 
 import play.api.libs.json.Json
 
-case class VehicleClassO(id: Long, name: String)
-
-case class VehicleModelO(id: Long, name: String, vehicleClass: VehicleClassO)
-
-case class VehicleO(id: Long, name: String, licensePLate: String, model: VehicleModelO)
+//case class VehicleClassO(id: Long, name: String)
+//
+//case class VehicleModelO(id: Long, name: String, vehicleClass: VehicleClassO)
+//
+//case class VehicleO(id: Long, name: String, licensePLate: String, model: VehicleModelO)
 
 
 case class VehicleClass(id: Long, name: String)

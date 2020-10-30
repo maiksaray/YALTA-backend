@@ -13,3 +13,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 # Process management
 GET     /processes                  controllers.VehicleController.getVehicles
 GET     /setup                      controllers.VehicleController.setup
+GET     /kt                         controllers.VehicleController.testKotlin

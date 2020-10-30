@@ -1,3 +1,4 @@
+//kotlinSource in Compile := baseDirectory.value / "app/common"
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
