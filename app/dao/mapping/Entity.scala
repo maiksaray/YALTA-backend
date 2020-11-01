@@ -1,6 +1,6 @@
 package dao.mapping
 
-trait Entity[T <: Entity[T, ID], ID] {
+trait Entity[T, ID] {
   val id: Option[ID]
 
   def withId(id: ID): T

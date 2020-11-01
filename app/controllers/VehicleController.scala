@@ -1,15 +1,15 @@
 package controllers
 
 import common._
-import dao.mapping.Vehicle
-import dao.{VehicleRepository}
+import dao.{VehicleDao, VehicleRepo}
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class VehicleController @Inject()(repo: VehicleRepository, cc: MessagesControllerComponents
+class VehicleController @Inject()(repo: VehicleRepo, cc: MessagesControllerComponents,
+                                  dao: VehicleDao
                                  )(implicit ec: ExecutionContext)
   extends MessagesAbstractController(cc) {
 
@@ -32,9 +32,14 @@ class VehicleController @Inject()(repo: VehicleRepository, cc: MessagesControlle
 
   def setup = Action.async { implicit request => {
     repo.createTable()
-    repo.create(Vehicle(None, "as", "asd", 1))
-    repo.all().map(res =>
-      Ok(res.toString))
+    //    repo.create(Vehicle(None, "as", "asd", 1))
+    dao.ensureExists()
+    for {
+      vc <- dao.createClass("test")
+      svc <- dao.getVehicleClass(vc.getId)
+    } yield Ok(svc.toString)
+    //      repo.all().map(res =>
+    //      Ok(res.toString))
   }
   }
 
