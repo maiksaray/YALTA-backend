@@ -2,4 +2,8 @@
 
 <https://github.com/playframework/play-scala-isolated-slick-example/>
 
-_TBD_
+Contains git submodule with common data model code, to properly clone this use
+`git clone --recurse-submodules`
+
+ 
+ 
