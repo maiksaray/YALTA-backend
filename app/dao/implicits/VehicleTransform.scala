@@ -16,6 +16,7 @@ object VehicleTransform {
   }
 
   implicit def vehicleClassDbToModes(vehicleClass: VehicleClass): common.VehicleClass =
+//    TODO: universally pass unapplied case class to tupled constructor???
     new common.VehicleClass(vehicleClass.id, vehicleClass.name)
 
   implicit def vehicleClassModelToDb(vehicleClass: common.VehicleClass): VehicleClass =
