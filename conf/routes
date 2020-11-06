@@ -3,7 +3,8 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.PersonController.index
+GET     /                           controllers.IndexController.index
+GET     /help                       controllers.IndexController.help
 POST    /person                     controllers.PersonController.addPerson
 GET     /persons                    controllers.PersonController.getPersons
 
@@ -11,6 +12,5 @@ GET     /persons                    controllers.PersonController.getPersons
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # Process management
-GET     /processes                  controllers.VehicleController.getVehicles
 GET     /setup                      controllers.VehicleController.setup
 GET     /kt                         controllers.VehicleController.testKotlin

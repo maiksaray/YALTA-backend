@@ -1,6 +1,10 @@
 package dao.mapping
 
-case class User(override val id: Option[Long], name: String, password: String) extends Entity[User, Long] {
+sealed trait Role
+case object Admin extends Role
+case object Driver extends Role
+
+case class User(override val id: Option[Long], name: String, password: String, role:Role) extends Entity[User, Long] {
   override def withId(id: Long): User = this.copy(id = Some(id))
 }
 

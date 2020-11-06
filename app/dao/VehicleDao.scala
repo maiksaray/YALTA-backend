@@ -10,6 +10,7 @@ import implicits.VehicleTransform._
 class VehicleDao @Inject()(vehicleRepo: VehicleRepo, vehicleClassRepo: VehicleClassRepo, vehicleModelRepo: VehicleModelRepo)
                           (implicit ec: ExecutionContext) {
 
+//  TODO:Move this to a special service
   def ensureExists() =
     for {
       _ <- vehicleRepo.createTable()
