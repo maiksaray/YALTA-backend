@@ -1,6 +1,7 @@
 package jobs
 //TODO: look at how the fuck evolutions should be done cause this is fucked up
 import dao.UserDao
+import common.{Admin, Driver}
 
 import scala.concurrent.Future
 import javax.inject._
@@ -11,6 +12,8 @@ import play.api.inject.ApplicationLifecycle
 class ApplicationStart @Inject()(userDao:UserDao,
                                  lifecycle: ApplicationLifecycle) {
   userDao.ensureExists()
+  userDao.create("admin", "admin", Admin.INSTANCE)
+  userDao.create("driver", "driver", Driver.INSTANCE)
   // Shut-down hook
   lifecycle.addStopHook { () =>
     Future.successful(())

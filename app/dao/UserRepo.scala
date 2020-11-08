@@ -39,7 +39,7 @@ class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(
 
   override def tableQuery = TableQuery[TableType]
 
-  def create(item: User) = db.run {
+  def create(item: User): Future[User] = db.run {
     ((tableQuery returning tableQuery.map(_.id)) += item).map(id => item.withId(id))
   }
 

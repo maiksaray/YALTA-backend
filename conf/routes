@@ -7,6 +7,8 @@ GET     /                           controllers.IndexController.index
 GET     /help                       controllers.IndexController.help
 POST    /login                      controllers.IndexController.login(username:String, password:String)
 
+GET     /test                       controllers.SecuredController.test
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 

@@ -5,18 +5,20 @@ import dao.{VehicleDao, VehicleRepo}
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
+import security.{UserAction, UserRequest}
 
 import scala.concurrent.ExecutionContext
 
 class VehicleController @Inject()(repo: VehicleRepo, cc: MessagesControllerComponents,
-                                  dao: VehicleDao
+                                  dao: VehicleDao,
+                                  val userAction: UserAction
                                  )(implicit ec: ExecutionContext)
   extends MessagesAbstractController(cc) {
 
   //  def map(vehicleClass: VehicleClass, vehicleModel: VehicleModel): VehicleModelO =
   //    new VehicleModelO(vehicleModel.id, vehicleModel.name, new VehicleClassO(vehicleClass.id, vehicleClass.name))
   //
-  def testKotlin() = Action {
+  def testKotlin() = Action { req =>
     Ok("ok")
   }
 
@@ -25,7 +27,8 @@ class VehicleController @Inject()(repo: VehicleRepo, cc: MessagesControllerCompo
   //  }
 
 
-  def getVehicles = Action { implicit request =>
+  def getVehicles = userAction { request: UserRequest[AnyContent] =>
+    request.user.map(opt => opt.map(_.getRole))
     Ok("ok")
   }
 
