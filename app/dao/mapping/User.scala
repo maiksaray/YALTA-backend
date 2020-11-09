@@ -1,5 +1,7 @@
 package dao.mapping
 
+import com.byteslounge.slickrepo.meta.Entity
+
 sealed trait Role
 case object Admin extends Role
 case object Driver extends Role

@@ -1,13 +1,18 @@
 package dao
 
-import dao.mapping.{Admin, Driver, Role, User, VehicleClass}
+import com.byteslounge.slickrepo.meta.Keyed
+import com.byteslounge.slickrepo.repository.Repository
+import dao.mapping.{Admin, Driver, Role, User}
 import javax.inject.{Inject, Singleton}
 import play.api.db.slick.DatabaseConfigProvider
+import slick.ast.BaseTypedType
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends BaseRepo[User, Long] {
+class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+  extends CommonRepo[User, Long](dbConfigProvider) {
 
   import dbConfig._
   import profile.api._
@@ -35,13 +40,10 @@ class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(
     def * = (id.?, name, password, role) <> ((User.apply _).tupled, User.unapply)
   }
 
-  override type TableType = Users
+  type TableType = Users
+  val pkType = implicitly[BaseTypedType[Long]]
+  val tableQuery = TableQuery[TableType]
 
-  override def tableQuery = TableQuery[TableType]
-
-  def create(item: User): Future[User] = db.run {
-    ((tableQuery returning tableQuery.map(_.id)) += item).map(id => item.withId(id))
-  }
 
   def find(id: Long): Future[Option[User]] = db.run {
     tableQuery.filter(_.id === id).result.headOption
@@ -50,5 +52,4 @@ class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(
   def findByName(name: String): Future[Option[User]] = db.run {
     tableQuery.filter(_.name === name).result.headOption
   }
-
 }

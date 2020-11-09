@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
       "com.typesafe.play" %% "play-slick" % "5.0.0",
       "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
       "com.h2database" % "h2" % "1.4.199",
+      "com.byteslounge" %% "slick-repo" % "1.5.3",
       "org.camunda.connect" % "camunda-connect-core" % "1.5.0",
       "org.camunda.connect" % "camunda-connect-connectors-all" % "1.5.0",
       specs2 % Test,

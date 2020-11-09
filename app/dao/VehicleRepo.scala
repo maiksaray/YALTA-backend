@@ -1,15 +1,17 @@
 package dao
 
+import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Vehicle, VehicleClass, VehicleModel}
 import javax.inject.{Inject, Singleton}
 import play.api.db.slick.DatabaseConfigProvider
+import slick.ast.BaseTypedType
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class VehicleRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)
                            (implicit ec: ExecutionContext)
-  extends BaseRepo[Vehicle, Long] {
+  extends CommonRepo[Vehicle, Long](dbConfigProvider) {
 
   import dbConfig._
   import profile.api._
@@ -30,18 +32,13 @@ class VehicleRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvide
   override type TableType = Vehicles
   override val tableQuery = TableQuery[TableType]
 
-  override def schema = tableQuery.schema
-
-  def create(item: Vehicle) = db.run {
-    ((tableQuery returning tableQuery.map(_.id)) += item).map(id => item.withId(id))
-  }
-
+  val pkType = implicitly[BaseTypedType[Long]]
 }
 
 @Singleton
 class VehicleClassRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)
                                 (implicit ec: ExecutionContext)
-  extends BaseRepo[VehicleClass, Long] {
+  extends CommonRepo[VehicleClass, Long](dbConfigProvider) {
 
   import dbConfig._
   import profile.api._
@@ -56,11 +53,8 @@ class VehicleClassRepo @Inject()(override val dbConfigProvider: DatabaseConfigPr
 
   override type TableType = VehicleClasses
   override val tableQuery = TableQuery[TableType]
-  override def schema = tableQuery.schema
+  val pkType = implicitly[BaseTypedType[Long]]
 
-  def create(item: VehicleClass) = db.run {
-    ((tableQuery returning tableQuery.map(_.id)) += item).map(id => item.withId(id))
-  }
 
   def find(id:Long) = db.run{
     tableQuery.filter(_.id === id).result.headOption
@@ -70,7 +64,7 @@ class VehicleClassRepo @Inject()(override val dbConfigProvider: DatabaseConfigPr
 @Singleton
 class VehicleModelRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)
                                 (implicit ex: ExecutionContext)
-  extends BaseRepo[VehicleModel, Long] {
+  extends CommonRepo[VehicleModel, Long](dbConfigProvider) {
 
   import dbConfig._
   import profile.api._
@@ -87,10 +81,7 @@ class VehicleModelRepo @Inject()(override val dbConfigProvider: DatabaseConfigPr
 
   override type TableType = VehicleModels
   override val tableQuery = TableQuery[TableType]
-  override def schema = tableQuery.schema
+  val pkType = implicitly[BaseTypedType[Long]]
 
-  def create(item: VehicleModel) = db.run {
-    ((tableQuery returning tableQuery.map(_.id)) += item).map(id => item.withId(id))
-  }
 }
 

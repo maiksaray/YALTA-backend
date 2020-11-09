@@ -1,5 +1,7 @@
 package dao.mapping
 
+import com.byteslounge.slickrepo.meta.Entity
+
 case class VehicleClass(override val id: Option[Long], name: String) extends Entity[VehicleClass, Long] {
   override def withId(id: Long): VehicleClass = this.copy(id = Some(id))
 }

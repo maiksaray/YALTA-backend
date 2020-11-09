@@ -1,7 +1,6 @@
 package controllers
 
 import common.{Admin, Role}
-import dao.{VehicleDao, VehicleRepo}
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents, Request, Result}
 import security.{UserAction, UserRequest}
