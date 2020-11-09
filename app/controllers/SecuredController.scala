@@ -17,9 +17,7 @@ class SecuredController @Inject()(cc: MessagesControllerComponents,
                                actionParam: Action[AnyContent]):Action[AnyContent] =
     userAction.async(actionParam.parser) {
       userRequest: UserRequest[AnyContent] =>
-      //      userRequest.user.map {
-      //        case Some(user) =>
-      //          if (roles.contains(user.getRole)) {
+
       val user = Await.result(userRequest.user, Duration.Inf)
       val role = user match {
         case None => None
@@ -33,15 +31,8 @@ class SecuredController @Inject()(cc: MessagesControllerComponents,
           Future(Unauthorized)
         }
       }
-      //          } else {
-      //            Unauthorized
-      //          }
-      //        case None => Unauthorized
-      //      }
     }
 
-
-  def sec(roles: Seq[Role], block: => Result) = userAction(block)
 
   def test() = securedAsync(Admin.INSTANCE :: Nil, Action{
     request: Request[AnyContent] => {
