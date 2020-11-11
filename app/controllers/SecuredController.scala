@@ -1,8 +1,9 @@
 package controllers
 
-import common.{Admin, Role}
+import common.Role
 import javax.inject.Inject
-import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents, Request, Result}
+import play.api.Logging
+import play.api.mvc.{Action, MessagesAbstractController, MessagesControllerComponents}
 import security.{UserAction, UserRequest}
 
 import scala.concurrent.duration.Duration
@@ -11,7 +12,10 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 class SecuredController @Inject()(cc: MessagesControllerComponents,
                                   val userAction: UserAction
                                  )(implicit ec: ExecutionContext)
-  extends MessagesAbstractController(cc) {
+  extends MessagesAbstractController(cc) with Logging{
+
+  val unauthorizedError: String = common.ErrorKt.encode(
+    new common.Unauthorized("Insufficient rights to access requested resource"))
 
   def securedAsync[AnyContent](roles: Seq[Role],
                                actionParam: Action[AnyContent]):Action[AnyContent] =
@@ -23,22 +27,14 @@ class SecuredController @Inject()(cc: MessagesControllerComponents,
         case None => None
         case Some(value) => value.getRole
       }
+//        Todo: propagate this in a more elegant way
       role match {
-        case None => Future(Unauthorized)
+        case None => Future(Unauthorized(unauthorizedError))
         case _ => if(roles.contains(role)){
           actionParam (userRequest)
         }else{
-          Future(Unauthorized)
+          Future(Unauthorized(unauthorizedError))
         }
       }
     }
-
-
-  def test() = securedAsync(Admin.INSTANCE :: Nil, Action{
-    request: Request[AnyContent] => {
-      Ok("Only Admin")
-    }
-  }
-  )
-
 }

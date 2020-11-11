@@ -22,19 +22,16 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext) {
     repo.create(user)
   }
 
-  def auth(username: String, password: String) = {
+  def auth(username: String, password: String): Future[Option[common.User]] = {
     repo.findByName(username).map {
-      case Some(dbUser) => dbUser.password == password
-      case None => false
+      case Some(dbUser) if dbUser.password == password =>
+        Some(dbUser)
+      case None => None
     }
   }
 
-  def auth(user: common.User) = {
-    repo.findByName(user.getName).map {
-      case Some(dbUser) => dbUser.password == user.getPassword
-      case None => false
-    }
-  }
+  def auth(user: common.User): Future[Option[common.User]] =
+    auth(user.getName, user.getPassword)
 
   def getUser(username: String): Future[Option[common.User]] = {
     //    TODO:rework this!

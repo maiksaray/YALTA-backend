@@ -15,9 +15,9 @@ class VehicleController @Inject()(repo: VehicleRepo, cc: MessagesControllerCompo
                                  )(implicit ec: ExecutionContext)
   extends SecuredController(cc, userAction) {
 
-  def getVehicles() = securedAsync(Admin.INSTANCE :: Nil, Action {
+  def getVehicles(): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Nil, Action {
     request: Request[AnyContent] => {
-      Ok("ok")
+      Ok("{}")
     }
   }
   )
