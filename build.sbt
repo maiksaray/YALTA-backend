@@ -30,4 +30,3 @@ lazy val root = (project in file("."))
     )
   )
 kotlinVersion := "1.4.10"
-//kotlinPlugin("plugin.serialization")
