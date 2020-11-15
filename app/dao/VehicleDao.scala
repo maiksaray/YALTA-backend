@@ -1,6 +1,7 @@
 package dao
 
 import dao.mapping.VehicleClass
+import dao.repo.{VehicleClassRepo, VehicleModelRepo, VehicleRepo}
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}

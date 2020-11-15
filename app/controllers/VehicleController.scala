@@ -1,16 +1,15 @@
 package controllers
 
 import common._
-import dao.{VehicleDao, VehicleRepo}
+import dao.VehicleDao
 import javax.inject.Inject
-import play.api.libs.json.Json
 import play.api.mvc._
-import security.{UserAction, UserRequest}
+import security.UserAction
 
 import scala.concurrent.ExecutionContext
 
-class VehicleController @Inject()(repo: VehicleRepo, cc: MessagesControllerComponents,
-                                  dao: VehicleDao,
+class VehicleController @Inject()(dao: VehicleDao,
+                                  cc: MessagesControllerComponents,
                                   override val userAction: UserAction
                                  )(implicit ec: ExecutionContext)
   extends SecuredController(cc, userAction) {

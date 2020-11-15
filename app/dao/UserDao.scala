@@ -1,6 +1,7 @@
 package dao
 
 import dao.mapping.User
+import dao.repo.UserRepo
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -8,11 +9,7 @@ import implicits.UserTransform._
 import sun.security.util.Password
 
 @Singleton
-class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext) {
-
-  //  TODO:Move this to a special service
-  def ensureExists() =
-    repo.createTable()
+class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext) extends BaseDao[User, Long, UserRepo](repo)(ec) {
 
   def create(name: String, pass: String, role: common.Role) = {
     repo.create(User(None, name, pass, role))
@@ -26,6 +23,7 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext) {
     repo.findByName(username).map {
       case Some(dbUser) if dbUser.password == password =>
         Some(dbUser)
+      case Some(_) => None
       case None => None
     }
   }

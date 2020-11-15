@@ -1,12 +1,10 @@
-package dao
+package dao.repo
 
 import com.byteslounge.slickrepo.meta.Keyed
-import com.byteslounge.slickrepo.repository.Repository
 import dao.mapping.{Admin, Driver, Role, User}
 import javax.inject.{Inject, Singleton}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
-import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 

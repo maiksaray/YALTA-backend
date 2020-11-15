@@ -1,4 +1,4 @@
-package dao
+package dao.repo
 
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Vehicle, VehicleClass, VehicleModel}

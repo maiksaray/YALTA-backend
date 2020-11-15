@@ -7,7 +7,7 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
 
 import scala.concurrent.ExecutionContext
-
+import common.Serialization.{INSTANCE => Json}
 
 class IndexController @Inject()(userDao: UserDao,
                                 sessionDao: SessionDao,
@@ -36,13 +36,13 @@ class IndexController @Inject()(userDao: UserDao,
           logger.info(s"user $username authed, generating session token")
           val token = sessionDao.generateToken(username)
 
-          val userString = common.UserKt.encode(user)
+          val userString = Json.toJson(user)
           Ok(userString).withSession(request.session + ("sessionToken" -> token))
         }
         case None => {
           logger.warn(s"login attempt for username $username failed")
           val err = new InvalidCredentials("username or password are incorrect")
-          Unauthorized(common.ErrorKt.encode(err))
+          Unauthorized(Json.toJson(err))
         }
       }
     }
