@@ -8,4 +8,6 @@ case class Location(override val id: Option[Long], lat: Double, lon: Double, use
   override def withId(id: Long): Location = this.copy(id = Some(id))
 
   def withIdAndTimestamp(id: Long, timestamp: Timestamp): Location = this.copy(id = Some(id), timestamp = timestamp)
+
+  def withTimestamp(timestamp: Timestamp):Location = this.copy(timestamp = timestamp)
 }

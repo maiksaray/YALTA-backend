@@ -23,7 +23,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
   override def tableQuery = TableQuery[Locations]
 
   class Locations(tag: Tag) extends Table[Location](tag, "locations") with Keyed[Long] {
-    override def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    override def id = column[Long]("id", O.AutoInc)
 
     def lat = column[Double]("lat")
 
@@ -31,7 +31,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
     def userId = column[Long]("userId")
 
-    def timestamp = column[Timestamp]("timestamp", O.AutoInc)
+    def timestamp = column[Timestamp]("timestamp", O.AutoInc, O.SqlType("timestamp default now()"))
 
     //    TODO:add FK for userID
 
@@ -39,9 +39,9 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
   }
 
   override def save(location: Location)(implicit ec: ExecutionContext): DBIO[Location] = {
-    (tableQuery returning tableQuery.map(l => (l.id, l.timestamp)) += location)
+    (tableQuery returning tableQuery.map(l => (l.timestamp)) += location)
       .map {
-        case (id, timestamp) => location.withIdAndTimestamp(id, timestamp)
+        case (timestamp) => location.withTimestamp(timestamp)
       }
   }
 

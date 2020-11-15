@@ -3,20 +3,24 @@ package controllers
 import common.Role
 import javax.inject.Inject
 import play.api.Logging
-import play.api.mvc.{Action, MessagesAbstractController, MessagesControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesAbstractController, MessagesControllerComponents, MessagesRequest, Request}
 import security.{UserAction, UserRequest}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import common.Serialization.{INSTANCE => Json}
 
-class SecuredController @Inject()(cc: MessagesControllerComponents,
+class SecuredController @Inject()(cc: ControllerComponents,
                                   val userAction: UserAction
                                  )(implicit ec: ExecutionContext)
-  extends MessagesAbstractController(cc) with Logging {
+  extends AbstractController(cc) with Logging {
 
   val unauthorizedError: String = Json.toJson(
     new common.Unauthorized("Insufficient rights to access requested resource"))
+
+  def currentUser(request:Request[AnyContent]): Future[Option[common.User]] = {
+    request.asInstanceOf[UserRequest[AnyContent]].user
+  }
 
   def securedAsync[AnyContent](roles: Seq[Role],
                                actionParam: Action[AnyContent]): Action[AnyContent] =
