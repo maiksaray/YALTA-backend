@@ -39,10 +39,8 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
   }
 
   override def save(location: Location)(implicit ec: ExecutionContext): DBIO[Location] = {
-    (tableQuery returning tableQuery.map(l => (l.timestamp)) += location)
-      .map {
-        case (timestamp) => location.withTimestamp(timestamp)
-      }
+    (tableQuery returning tableQuery.map(_.timestamp) += location)
+      .map(location.withTimestamp)
   }
 
   override def create(location: Location): Future[Location] = db.run {
