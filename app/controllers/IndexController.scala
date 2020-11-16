@@ -1,17 +1,16 @@
 package controllers
 
-import akka.event.Logging
-import com.google.inject.Inject
-import common.InvalidCredentials
-import dao.{SessionDao, UserDao}
-import com.google.inject.Inject
-import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
-import play.api.Logging
-
-import scala.concurrent.{ExecutionContext, Future}
+import common._
 import common.Serialization.{INSTANCE => Json}
+import dao.{SessionDao, UserDao}
+import javax.inject.{Inject, Singleton}
+import play.api.Logging
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.UserAction
 
+import scala.concurrent.{ExecutionContext, Future}
+
+@Singleton
 class IndexController @Inject()(userDao: UserDao,
                                 sessionDao: SessionDao,
                                 cc: MessagesControllerComponents,
