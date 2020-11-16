@@ -1,14 +1,14 @@
 package controllers
 
 import common.Role
+import common.Serialization.{INSTANCE => Json}
 import javax.inject.Inject
 import play.api.Logging
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesAbstractController, MessagesControllerComponents, MessagesRequest, Request}
+import play.api.mvc._
 import security.{UserAction, UserRequest}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
-import common.Serialization.{INSTANCE => Json}
 
 class SecuredController @Inject()(cc: ControllerComponents,
                                   val userAction: UserAction

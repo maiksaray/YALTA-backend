@@ -13,7 +13,6 @@ class ApplicationStart @Inject()(userDao: UserDao,
                                  lifecycle: ApplicationLifecycle) {
 
   //TODO: look at how the fuck evolutions should be done cause this is fucked up
-
   userDao.ensureExists()
   userDao.create("admin", "admin", Admin.INSTANCE)
   userDao.create("driver", "driver", Driver.INSTANCE)

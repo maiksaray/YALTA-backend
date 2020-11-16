@@ -1,11 +1,11 @@
 package controllers
 
+import common.Serialization.{INSTANCE => Json}
 import common._
 import dao.{LocationDao, SessionDao}
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request}
-import security.{UserAction, UserRequest}
-import common.Serialization.{INSTANCE => Json}
+import security.UserAction
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,13 +24,13 @@ class LocationController @Inject()(locationDao: LocationDao,
           val locationUpdate = Json.fromJson(bodyString, classOf[common.LocationUpdate])
           currentUser(request).flatMap {
             case Some(user) =>
-              locationDao.checkin(locationUpdate.getLat, locationUpdate.getLon, user.getId)
+              locationDao.create(locationUpdate.getLat, locationUpdate.getLon, user.getId)
                 .map(Json.toJson)
                 .map(s => Ok(s))
             case None => Future.successful(
-              Unauthorized(
+              InternalServerError(
                 Json.toJson(
-                  new common.Unauthorized("No user found for existing session"))))
+                  new common.InternalServerError("No user found for existing session, this should never happen"))))
           }
         case None => Future.successful(
           BadRequest(

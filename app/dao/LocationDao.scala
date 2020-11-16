@@ -13,11 +13,11 @@ import implicits.LocationTransform._
 class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
   extends BaseDao[Location, Long, LocationRepo](repo)(ec) {
 
-  def checkin(lat: Double, lon: Double, userId: Long): Future[common.Location] = {
-    checkin(Location(None, lat, lon, userId, new Timestamp(System.currentTimeMillis())))
+  def create(lat: Double, lon: Double, userId: Long): Future[common.Location] = {
+    create(Location(None, lat, lon, userId, new Timestamp(System.currentTimeMillis())))
   }
 
-  def checkin(location: common.Location): Future[common.Location] = {
+  def create(location: common.Location): Future[common.Location] = {
     val eventualLocation = repo.create(location)
     eventualLocation.map(locationDbToModel)
   }

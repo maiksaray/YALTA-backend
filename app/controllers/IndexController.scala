@@ -1,13 +1,13 @@
 package controllers
 
-import com.google.inject.Inject
+import common.Serialization.{INSTANCE => Json}
 import common.InvalidCredentials
 import dao.{SessionDao, UserDao}
-import play.api.Logging
+import com.google.inject.Inject
 import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
+import play.api.Logging
 
 import scala.concurrent.ExecutionContext
-import common.Serialization.{INSTANCE => Json}
 
 class IndexController @Inject()(userDao: UserDao,
                                 sessionDao: SessionDao,
