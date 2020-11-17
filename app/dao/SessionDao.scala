@@ -22,8 +22,8 @@ class SessionDao extends Logging{
 
   def generateToken(username: String): String = {
     val token = s"$username-token-${UUID.randomUUID().toString}"
-    logger.info(s"Generating session token for $username")
     sessions.put(token, Session(token, username, LocalDateTime.now().plusHours(6)))
+    logger.info(s"Generated and saved session token for $username")
     token
   }
 }

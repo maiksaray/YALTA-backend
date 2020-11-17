@@ -38,10 +38,10 @@ class IndexController @Inject()(userDao: UserDao,
 
       userDao.auth(username, password) map {
         case Some(user) => {
-          logger.info(s"User $username authed, generating session token")
+          logger.info(s"User $username authed, proceeding with token")
           val token = sessionDao.generateToken(username)
-
           val userString = Json.toJson(user)
+          logger.info(s"Replying to user $username with new session token")
           Ok(userString).withSession(request.session + (sessionTokenName -> token))
         }
         case None => {
@@ -58,15 +58,23 @@ class IndexController @Inject()(userDao: UserDao,
       val maybeToken = request.session
         .get(sessionTokenName)
       maybeToken match {
-        case None => Future.successful(Unauthorized(unauthorizedError))
+        case None =>
+          logger.info(s"User data requested by unauthorized user, rejecting")
+          Future.successful(Unauthorized(unauthorizedError))
         case Some(token) => {
           val maybeSession = sessionDao.getSession(token)
           maybeSession match {
-            case None => Future.successful(Unauthorized(unauthorizedError))
+            case None =>
+              logger.info(s"User data requested for expired/missing session for token, rejecting")
+              Future.successful(Unauthorized(unauthorizedError))
             case Some(session) => {
               userDao.getUser(session.username).map {
-                case None => Unauthorized(unauthorizedError)
-                case Some(user) => Ok(Json.toJson(user))
+                case None =>
+                  logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
+                  Unauthorized(unauthorizedError)
+                case Some(user) =>
+                  logger.info(s"Returning user data for user ${user.getName}")
+                  Ok(Json.toJson(user))
               }
             }
           }

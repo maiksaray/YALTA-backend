@@ -29,10 +29,14 @@ class LocationController @Inject()(locationDao: LocationDao,
             case Some(user) =>
               logger.info(s"Updating location for user ${user.getName}(${user.getId})")
               locationDao.create(locationUpdate.getLat, locationUpdate.getLon, user.getId)
-                .map(Json.toJson)
-                .map(s => Ok(s))
+                .map { location =>
+                  logger.info(s"Added location record for ${user.getName} at ${location.getTimestamp}")
+                  Json.toJson(location)
+                }.map {
+                Ok.apply
+              }
             case None =>
-              logger.error(s"Update came from existing session, but user was not found!")
+              logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
               Future.successful(InternalServerError(Json.toJson(
                 new common.InternalServerError("No user found for existing session, this should never happen"))))
           }
