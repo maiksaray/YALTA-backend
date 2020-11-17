@@ -33,7 +33,7 @@ class LocationController @Inject()(locationDao: LocationDao,
                   logger.info(s"Added location record for ${user.getName} at ${location.getTimestamp}")
                   Json.toJson(location)
                 }.map {
-                Ok.apply
+                json => Ok(json)
               }
             case None =>
               logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
