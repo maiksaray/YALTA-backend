@@ -3,15 +3,16 @@ package dao
 import java.time.LocalDateTime
 import java.util.UUID
 
-import dao.mapping.{Session, User}
+import dao.implicits.UserTransform._
+import dao.mapping.Session
 import javax.inject.Singleton
+import play.api.Logging
 
 import scala.collection.mutable
-import implicits.UserTransform._
 
 
 @Singleton
-class SessionDao {
+class SessionDao extends Logging{
 
   private val sessions = mutable.Map.empty[String, Session]
 
@@ -21,6 +22,7 @@ class SessionDao {
 
   def generateToken(username: String): String = {
     val token = s"$username-token-${UUID.randomUUID().toString}"
+    logger.info(s"Generating session token for $username")
     sessions.put(token, Session(token, username, LocalDateTime.now().plusHours(6)))
     token
   }

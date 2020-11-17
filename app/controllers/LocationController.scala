@@ -14,28 +14,32 @@ class LocationController @Inject()(locationDao: LocationDao,
                                    sessionDao: SessionDao,
                                    cc: MessagesControllerComponents,
                                    override val userAction: UserAction
-                                  )(implicit ec: ExecutionContext) extends SecuredController(cc, userAction) {
+                                  )(implicit ec: ExecutionContext)
+  extends SecuredController(cc, userAction) {
 
   def update(): Action[AnyContent] = securedAsync(Driver.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
+      logger.info("Received location update request")
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
+          logger.info(bodyString)
           val locationUpdate = Json.fromJson(bodyString, classOf[common.LocationUpdate])
           currentUser(request).flatMap {
             case Some(user) =>
+              logger.info(s"Updating location for user ${user.getName}(${user.getId})")
               locationDao.create(locationUpdate.getLat, locationUpdate.getLon, user.getId)
                 .map(Json.toJson)
                 .map(s => Ok(s))
-            case None => Future.successful(
-              InternalServerError(
-                Json.toJson(
-                  new common.InternalServerError("No user found for existing session, this should never happen"))))
+            case None =>
+              logger.error(s"Update came from existing session, but user was not found!")
+              Future.successful(InternalServerError(Json.toJson(
+                new common.InternalServerError("No user found for existing session, this should never happen"))))
           }
-        case None => Future.successful(
-          BadRequest(
-            Json.toJson(
-              new BadRequest("Empty body not allowed for location update"))))
+        case None =>
+          logger.info("Empty location update request, returning 401")
+          Future.successful(BadRequest(Json.toJson(
+            new BadRequest("Empty body not allowed for location update"))))
       }
     }
   })

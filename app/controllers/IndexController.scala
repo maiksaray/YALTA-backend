@@ -16,8 +16,7 @@ class IndexController @Inject()(userDao: UserDao,
                                 cc: MessagesControllerComponents,
                                 override val userAction: UserAction
                                )(implicit ec: ExecutionContext)
-  extends SecuredController(cc, userAction)
-    with Logging {
+  extends SecuredController(cc, userAction) {
 
 
   def index(): Action[AnyContent] = Action {
@@ -39,14 +38,14 @@ class IndexController @Inject()(userDao: UserDao,
 
       userDao.auth(username, password) map {
         case Some(user) => {
-          logger.info(s"user $username authed, generating session token")
+          logger.info(s"User $username authed, generating session token")
           val token = sessionDao.generateToken(username)
 
           val userString = Json.toJson(user)
           Ok(userString).withSession(request.session + (sessionTokenName -> token))
         }
         case None => {
-          logger.warn(s"login attempt for username $username failed")
+          logger.warn(s"Login attempt for username $username failed")
           val err = new InvalidCredentials("username or password are incorrect")
           Unauthorized(Json.toJson(err))
         }
