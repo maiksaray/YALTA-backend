@@ -31,7 +31,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
     def userId = column[Long]("userId")
 
-    def timestamp = column[Timestamp]("timestamp",  O.SqlType("TIMESTAMP DEFAULT CURRENT_TIMESTAMP"), O.AutoInc)
+    def timestamp = column[Timestamp]("timestamp", O.AutoInc, O.SqlType("timestamp default now()"))
 
     //    TODO:add FK for userID
 

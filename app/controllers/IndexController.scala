@@ -4,6 +4,7 @@ import common._
 import common.Serialization.{INSTANCE => Json}
 import dao.{SessionDao, UserDao}
 import javax.inject.{Inject, Singleton}
+import play.api.Logging
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.UserAction
 
@@ -15,15 +16,18 @@ class IndexController @Inject()(userDao: UserDao,
                                 cc: MessagesControllerComponents,
                                 override val userAction: UserAction
                                )(implicit ec: ExecutionContext)
-  extends SecuredController(cc, userAction) {
+  extends SecuredController(cc, userAction)
+    with Logging {
 
 
   def index(): Action[AnyContent] = Action {
+    logger.info("Serving index")
     Ok("Welcome to YALTA backend service! \n" +
       "Use /login with form params 'username' and 'password' to log in")
   }
 
   def help(): Action[AnyContent] = Action {
+    logger.info("Someone requested help, poor soul")
     Ok("No help for you at the moment")
   }
 
@@ -35,12 +39,14 @@ class IndexController @Inject()(userDao: UserDao,
 
       userDao.auth(username, password) map {
         case Some(user) => {
+          logger.info(s"user $username authed, generating session token")
           val token = sessionDao.generateToken(username)
 
           val userString = Json.toJson(user)
           Ok(userString).withSession(request.session + (sessionTokenName -> token))
         }
         case None => {
+          logger.warn(s"login attempt for username $username failed")
           val err = new InvalidCredentials("username or password are incorrect")
           Unauthorized(Json.toJson(err))
         }

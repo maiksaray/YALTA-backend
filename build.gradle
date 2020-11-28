@@ -31,18 +31,14 @@ sourceSets {
 
 compileScala.classpath += files(compileKotlin.destinationDir)
 
-//tasks.withType(PlayRun)
-tasks.findByName('runPlay').configure {
-    forkOptions.jvmArgs = ['-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9999']
+task debugPlay {
+    def runPlayTask = tasks.findByName('runPlay')
+    runPlayTask.forkOptions.jvmArgs = ['-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999']
+    inputs.files(runPlayTask.getAssetsDirs())
+    doLast {
+        runPlayTask.run()
+    }
 }
-
-//task debugPlayBinary {
-//    doLast {
-//        def runPlayTask = tasks.findByName('runPlay')
-//        runPlayTask.forkOptions.jvmArgs = ['-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999']
-//        runPlayTask.run()
-//    }
-//}
 
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"

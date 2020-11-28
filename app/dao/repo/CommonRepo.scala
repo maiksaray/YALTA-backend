@@ -24,7 +24,6 @@ abstract class CommonRepo[T <: Entity[T, ID], ID] @Inject()(val dbConfigProvider
   def schema = tableQuery.schema
 
   def createTable(): Future[Unit] = db.run {
-    val statements = tableQuery.schema.createStatements.mkString
     tableQuery.schema.createIfNotExists
   }
 
