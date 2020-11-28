@@ -24,4 +24,6 @@ class SessionDao {
     sessions.put(token, Session(token, username, LocalDateTime.now().plusHours(6)))
     token
   }
+
+  def deleteSession(token: String): Option[Session] = sessions.remove(token)
 }
