@@ -5,5 +5,13 @@ jdk: oraclejdk13
 scala:
   - 2.13.1
 
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean compile
+  - ./gradlew build
