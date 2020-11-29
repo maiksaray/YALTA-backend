@@ -7,6 +7,7 @@ GET     /                           controllers.IndexController.index
 GET     /help                       controllers.IndexController.help
 POST    /login                      controllers.IndexController.login(username:String, password:String)
 GET     /whoami                     controllers.IndexController.whoami
+POST    /logout                     controllers.IndexController.logout
 
 GET     /vehicles/                  controllers.VehicleController.getVehicles
 

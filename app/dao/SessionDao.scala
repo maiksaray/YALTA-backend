@@ -26,4 +26,6 @@ class SessionDao extends Logging{
     logger.info(s"Generated and saved session token for $username")
     token
   }
+
+  def deleteSession(token: String): Option[Session] = sessions.remove(token)
 }
