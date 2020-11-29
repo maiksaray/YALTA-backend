@@ -18,7 +18,7 @@ class SecuredController @Inject()(cc: ControllerComponents,
   val unauthorizedError: String = Json.toJson(
     new common.Unauthorized("Insufficient rights to access requested resource"))
 
-  def currentUser(request:Request[AnyContent]): Future[Option[common.User]] = {
+  def currentUser(request: Request[AnyContent]): Future[Option[common.User]] = {
     request.asInstanceOf[UserRequest[AnyContent]].user
   }
 
@@ -34,10 +34,13 @@ class SecuredController @Inject()(cc: ControllerComponents,
         }
         //        Todo: propagate this in a more elegant way
         role match {
-          case None => Future(Unauthorized(unauthorizedError))
+          case None =>
+            logger.warn("Returning 401 for request with no session provided")
+            Future(Unauthorized(unauthorizedError))
           case _ => if (roles.contains(role)) {
             actionParam(userRequest)
           } else {
+            logger.warn(s"User with role $role tried to request resource with permissions: $roles ${userRequest.path}")
             Future(Unauthorized(unauthorizedError))
           }
         }
