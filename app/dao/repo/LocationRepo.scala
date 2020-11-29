@@ -31,19 +31,24 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
     def userId = column[Long]("userId")
 
-    def timestamp = column[Timestamp]("timestamp", O.AutoInc, O.SqlType("timestamp default now()"))
+    def timestamp = column[Timestamp]("timestamp", O.SqlType("timestamp default now()"))
 
     //    TODO:add FK for userID
 
     override def * = (id.?, lat, lon, userId, timestamp) <> ((Location.apply _).tupled, Location.unapply)
   }
 
-  override def save(location: Location)(implicit ec: ExecutionContext): DBIO[Location] = {
-    (tableQuery returning tableQuery.map(_.timestamp) += location)
-      .map(location.withTimestamp)
-  }
+//  This is commented since Autoinc doesn't work for timestamp in DB,
+//  So we use default save DBIO and pre-generated timestamp
+//  override def save(location: Location)(implicit ec: ExecutionContext): DBIO[Location] = {
+//    (tableQuery returning tableQuery.map(_.timestamp) += location)
+//      .map(location.withTimestamp)
+//  }
 
   override def create(location: Location): Future[Location] = db.run {
-    save(location)
+//  This is commented since Autoinc doesn't work for timestamp in DB,
+//  So we use default save DBIO and pre-generated timestamp
+//    save(location)
+    save(location.withTimestamp(new Timestamp(System.currentTimeMillis())))
   }
 }
