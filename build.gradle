@@ -20,11 +20,9 @@ sourceSets {
         scala {
             srcDir 'app'
             exclude 'app/common/*'
-//            output.dir 'build/classes'
         }
         kotlin {
             srcDir 'app/common'
-//            output.dir 'build/classes'
         }
     }
 }
@@ -39,6 +37,19 @@ task debugPlay {
         runPlayTask.run()
     }
 }
+
+//This accompanies playBinary task, but copies custom runner that can be run by heroku with it's env.
+//Related issues: https://github.com/gradle/playframework/issues/81
+task copyRunner {
+    doLast {
+        copy {
+            from "scripts/fixed-runner"
+            into "build/stage/main/bin"
+        }
+    }
+}
+
+tasks.stage.finalizedBy(copyRunner)
 
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"

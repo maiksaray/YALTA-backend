@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+#this exists so that we can call this from Procfile and pass heroku env as MAIN_OPTS to runner script
+#in normal conditions we just can call main with opts, but gradle stage provides broken bin that can't accept opts!
+export MAIN_OPTS="-Dhttp.port=$PORT -Dplay.http.secret.key=$APP_SECRET"
+build/stage/main/bin/main
