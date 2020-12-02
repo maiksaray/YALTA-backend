@@ -1,4 +1,4 @@
-package jobs
+package misc
 
 import dao.{LocationDao, UserDao}
 import common.{Admin, Driver}

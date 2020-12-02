@@ -5,8 +5,10 @@ import common.Serialization.{INSTANCE => Json}
 import dao.{SessionDao, UserDao}
 import javax.inject.{Inject, Singleton}
 import play.api.Logging
+import play.api.db.slick.DatabaseConfigProvider
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.UserAction
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -14,6 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class IndexController @Inject()(userDao: UserDao,
                                 sessionDao: SessionDao,
                                 cc: MessagesControllerComponents,
+                                dbConfig: DatabaseConfigProvider,
                                 override val userAction: UserAction
                                )(implicit ec: ExecutionContext)
   extends SecuredController(cc, userAction) {
@@ -27,7 +30,9 @@ class IndexController @Inject()(userDao: UserDao,
 
   def help(): Action[AnyContent] = Action {
     logger.info("Someone requested help, poor soul")
-    Ok("No help for you at the moment")
+    val dbData = dbConfig.get[JdbcProfile].config
+    Ok("No help for you at the moment\n" +
+      s"dbConfig: ${dbData.getConfig("db").getString("driver")}")
   }
 
   val sessionTokenName = "sessionToken"
