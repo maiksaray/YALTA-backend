@@ -20,8 +20,8 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
           for {
             _ <- create("admin", "admin", common.Admin.INSTANCE)
             _ <- create("driver", "driver", common.Driver.INSTANCE)
-          } yield Future.successful()
-        case _ => Future.successful()
+          } yield Future.successful(())
+        case _ => Future.successful(())
       }
     }
   }
