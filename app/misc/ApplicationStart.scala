@@ -3,7 +3,9 @@ package misc
 import dao.{LocationDao, UserDao}
 import common.{Admin, Driver}
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import javax.inject._
 import play.api.Logging
 import play.api.inject.ApplicationLifecycle
@@ -11,16 +13,15 @@ import play.api.inject.ApplicationLifecycle
 @Singleton
 class ApplicationStart @Inject()(userDao: UserDao,
                                  locationDao: LocationDao,
-                                 lifecycle: ApplicationLifecycle) extends Logging{
+                                 lifecycle: ApplicationLifecycle) extends Logging {
 
   logger.info("Starting application, preparing db")
   //TODO: look at how the fuck evolutions should be done cause this is fucked up
-  userDao.ensureExists()
-  userDao.create("admin", "admin", Admin.INSTANCE)
-  userDao.create("driver", "driver", Driver.INSTANCE)
+  Await.result(userDao.ensureExists(), 5 seconds)
   logger.info("Created default users")
 
-  locationDao.ensureExists()
+  Await.result(locationDao.ensureExists(), 5 seconds)
+
   logger.info("Inited location storage")
 
   // Shut-down hook

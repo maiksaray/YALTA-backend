@@ -13,12 +13,27 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
   extends BaseDao[User, Long, UserRepo](repo)(ec)
     with Logging {
 
-  def create(name: String, pass: String, role: common.Role): Future[User] =
+  override def ensureExists(): Future[Unit] = {
+    for {
+      _ <- super.ensureExists()
+      user <- repo.findByName("admin")
+      if user.isEmpty
+    } yield create("admin", "admin", common.Admin.INSTANCE).flatMap {
+      _ => create("driver", "driver", common.Driver.INSTANCE)
+    }
+  }
+
+  def create(name: String, pass: String, role: common.Role): Future[common.User] =
     create(new common.User(null, name, pass, role))
 
-  def create(user: common.User): Future[User] = {
+  def create(user: common.User): Future[common.User] = {
     logger.info(s"Creating user ${user.getName}")
     repo.create(user)
+      .map(userDbToModel)
+  }
+
+  def update(user: common.User): Future[common.User] = {
+    repo.run(repo.update(user)).map(userDbToModel)
   }
 
   //  TODO: maybe move this to new service layer?

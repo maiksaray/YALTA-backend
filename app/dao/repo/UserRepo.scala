@@ -26,7 +26,7 @@ class UserRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvider)(
     }
   )
 
-  class Users(tag: Tag) extends Table[User](tag, "Users") with Keyed[Long] {
+  class Users(tag: Tag) extends Table[User](tag, "users") with Keyed[Long] {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
     def name = column[String]("name")
