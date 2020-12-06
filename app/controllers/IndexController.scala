@@ -4,7 +4,6 @@ import common._
 import common.Serialization.{INSTANCE => Json}
 import dao.{SessionDao, UserDao}
 import javax.inject.{Inject, Singleton}
-import play.api.Logging
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.UserAction

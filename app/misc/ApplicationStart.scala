@@ -17,6 +17,7 @@ class ApplicationStart @Inject()(userDao: UserDao,
 
   logger.info("Starting application, preparing db")
   //TODO: look at how the fuck evolutions should be done cause this is fucked up
+//  ALso, here we go around services layer, cuase we can
   Await.result(userDao.ensureExists(), 5 seconds)
   logger.info("Created default users")
 
