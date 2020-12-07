@@ -25,5 +25,4 @@ class UserServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite w
       }
     }
   }
-
 }

@@ -7,6 +7,5 @@ import org.scalatestplus.play.WsScalaTestClient
  * https://github.com/playframework/scalatestplus-play/issues/112
  * Left here for future references
  */
-abstract class AsyncPlaySpec extends AsyncWordSpec with MustMatchers with OptionValues with WsScalaTestClient{
-
+abstract class AsyncPlaySpec extends AsyncWordSpec with MustMatchers with OptionValues with WsScalaTestClient {
 }
