@@ -12,8 +12,10 @@ object UserTransform {
   }
 
   implicit def roleModeltoDb(role: common.Role): Role = role match {
-    case common.Admin.INSTANCE => Admin
-    case common.Driver.INSTANCE => Driver
+//      Can't pattern-match here since deserialized kotlin objects are never the same
+//      fromJson(toJson(common.Driver.INSTANCE), classOf[common.Role]) != common.Driver.INSTANCE
+    case _ if role.isInstanceOf[common.Admin] => Admin
+    case _ if role.isInstanceOf[common.Driver] => Driver
   }
 
   implicit def userDbToModel(user: User): common.User = {

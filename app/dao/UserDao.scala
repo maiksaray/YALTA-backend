@@ -14,12 +14,15 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
     with Logging {
 
   override def ensureExists(): Future[Unit] = {
-    for {
-      _ <- super.ensureExists()
-      user <- repo.findByName("admin")
-      if user.isEmpty
-    } yield create("admin", "admin", common.Admin.INSTANCE).flatMap {
-      _ => create("driver", "driver", common.Driver.INSTANCE)
+    super.ensureExists().flatMap { _ =>
+      repo.findByName("admin").flatMap {
+        case None =>
+          for {
+            _ <- create("admin", "admin", common.Admin.INSTANCE)
+            _ <- create("driver", "driver", common.Driver.INSTANCE)
+          } yield Future.successful(())
+        case _ => Future.successful(())
+      }
     }
   }
 
@@ -55,14 +58,23 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
   def auth(user: common.User): Future[Option[common.User]] =
     auth(user.getName, user.getPassword)
 
+  def getUser(id: Long): Future[Option[common.User]] = {
+    //    TODO:rework this!
+    logger.info(s"Obtaining user with id $id")
+    repo.find(id).map { option =>
+      option.map { user =>
+        userDbToModel(user)
+      }
+    }
+  }
+
   def getUser(username: String): Future[Option[common.User]] = {
     //    TODO:rework this!
     logger.info(s"Obtaining user with name $username")
-    repo.findByName(username).map {
-      f =>
-        f.map { u =>
-          userDbToModel(u)
-        }
+    repo.findByName(username).map { option =>
+      option.map { user =>
+        userDbToModel(user)
+      }
     }
   }
 

@@ -4,12 +4,18 @@
 
 # Home page
 GET     /                           controllers.IndexController.index
+# TODO: split this into resource routes
 GET     /help                       controllers.IndexController.help
 POST    /login                      controllers.IndexController.login(username:String, password:String)
 GET     /whoami                     controllers.IndexController.whoami
 POST    /logout                     controllers.IndexController.logout
 
 GET     /vehicles/                  controllers.VehicleController.getVehicles
+
+GET     /users                      controllers.UserController.getFiltered(name:String)
+GET     /users/:id                  controllers.UserController.get(id:Int)
+POST    /users/                     controllers.UserController.create
+POST    /users/me/password          controllers.UserController.changeOwnPass
 
 POST    /location/                  controllers.LocationController.update
 
