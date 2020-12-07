@@ -52,11 +52,6 @@ task copyRunner {
 
 tasks.stage.finalizedBy(copyRunner)
 
-task userStories(type: Test) {
-    suite 'UserServiceSpec'
-    // suites 'a.Spec', 'b.Spec', 'etc'
-}
-
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"
     implementation "com.typesafe.play:play-guice_$projectScalaVersion:2.7.5"
@@ -76,8 +71,6 @@ dependencies {
 
     testImplementation "org.scalatestplus.play:scalatestplus-play_$projectScalaVersion:4.0.3"
     testImplementation "org.mockito:mockito-core:3.6.0"
-
-//    testCompile 'org.scalatest:scalatest_2.13:3.2.0'
 }
 
 repositories {

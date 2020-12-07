@@ -15,7 +15,7 @@ GET     /vehicles/                  controllers.VehicleController.getVehicles
 GET     /users                      controllers.UserController.getFiltered(name:String)
 GET     /users/:id                  controllers.UserController.get(id:Int)
 POST    /users/                     controllers.UserController.create
-POST    /users/me/password          controllers.UserController.changePass
+POST    /users/me/password          controllers.UserController.changeOwnPass
 
 POST    /location/                  controllers.LocationController.update
 

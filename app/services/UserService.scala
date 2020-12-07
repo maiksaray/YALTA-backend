@@ -28,14 +28,12 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
     createUser(new common.User(null, name, pass, role))
 
   def update(name: String, change: common.User => common.User): Future[User] = {
-    userDao.getUser(name)
-      .map {
-        case None => throw new YaltaBaseException(s"User $name does not exist, can't update")
-        case Some(user) => user
-      }
-      .flatMap {
-        user => userDao.update(change(user))
-      }
+    userDao.getUser(name).map {
+      case None => throw new YaltaBaseException(s"User $name does not exist, can't update")
+      case Some(user) => user
+    }.flatMap {
+      user => userDao.update(change(user))
+    }
   }
 
   def changeRole(name: String, newRole: common.Role): Future[common.User] = {

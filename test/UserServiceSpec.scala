@@ -7,11 +7,6 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import services.UserService
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
-
-//TODO: maybe switch from AsycnSpec to ScalaFutures mixin? This will change flatMaps to whenReady
 class UserServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite with ScalaFutures {
 
   def userService(implicit app: Application): UserService = Application.instanceCache[UserService].apply(app)

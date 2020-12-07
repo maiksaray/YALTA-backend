@@ -1,6 +1,6 @@
 package controllers
 
-import common.Admin
+import common.{Admin, Driver}
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import security.UserAction
@@ -53,7 +53,9 @@ class UserController @Inject()(userService: UserService,
     }
   })
 
-  def changePass(): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+  /** This route is for changing user's own pass. Available for every logged-in user.
+   * */
+  def changeOwnPass(): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Driver.INSTANCE :: Nil, Action.async {
     request => {
       val body = request.body.asText
       body match {

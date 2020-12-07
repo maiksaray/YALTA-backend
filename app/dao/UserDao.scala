@@ -30,9 +30,7 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
     create(new common.User(null, name, pass, role))
 
   def create(user: common.User): Future[common.User] = {
-    logger.info(s"Creating user ${
-      user.getName
-    }")
+    logger.info(s"Creating user ${user.getName}")
     repo.create(user)
       .map(userDbToModel)
   }
@@ -63,24 +61,20 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
   def getUser(id: Long): Future[Option[common.User]] = {
     //    TODO:rework this!
     logger.info(s"Obtaining user with id $id")
-    repo.find(id).map {
-      f =>
-        f.map {
-          u =>
-            userDbToModel(u)
-        }
+    repo.find(id).map { f =>
+      f.map { u =>
+        userDbToModel(u)
+      }
     }
   }
 
   def getUser(username: String): Future[Option[common.User]] = {
     //    TODO:rework this!
     logger.info(s"Obtaining user with name $username")
-    repo.findByName(username).map {
-      f =>
-        f.map {
-          u =>
-            userDbToModel(u)
-        }
+    repo.findByName(username).map { f =>
+      f.map { u =>
+        userDbToModel(u)
+      }
     }
   }
 
