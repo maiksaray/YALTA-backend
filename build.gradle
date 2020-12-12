@@ -28,7 +28,6 @@ sourceSets {
     }
 }
 
-
 compileScala.classpath += files(compileKotlin.destinationDir)
 
 compilePlayRoutes.additionalImports = ["misc.binders._"]
