@@ -28,7 +28,10 @@ sourceSets {
     }
 }
 
+
 compileScala.classpath += files(compileKotlin.destinationDir)
+
+compilePlayRoutes.additionalImports = ["misc.binders._"]
 
 task debugPlay {
     def runPlayTask = tasks.findByName('runPlay')
@@ -51,6 +54,7 @@ task copyRunner {
 }
 
 tasks.stage.finalizedBy(copyRunner)
+tasks.test.setMaxParallelForks(1)
 
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"

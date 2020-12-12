@@ -36,5 +36,8 @@ abstract class CommonRepo[T <: Entity[T, ID], ID] @Inject()(val dbConfigProvider
     tableQuery.schema.createIfNotExists
   }
 
+  def bulkCreate(items: Seq[T]): Future[Option[Int]] = db.run {
+    batchInsert(items)
+  }
 
 }
