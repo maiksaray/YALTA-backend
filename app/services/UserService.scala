@@ -11,7 +11,7 @@ import misc.validator.UserExtentionValidator._
 import misc.validator.{Validated, ValidationFailed}
 
 @Singleton
-class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) extends Logging {
+class UserService @Inject()(userDao: UserDao, camundaUser: misc.camunda.User)(implicit ec: ExecutionContext) extends Logging {
 
   def get(id: Long): Future[Option[User]] = userDao.getUser(id)
 
@@ -19,7 +19,10 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
 
   def createUser(user: common.User): Future[common.User] = {
     user.validation match {
-      case Validated => userDao.create(user)
+      case Validated => userDao.create(user).map { created =>
+        camundaUser.createCamundaUser(created)
+        created
+      }
       case ValidationFailed(reason) => throw new InvalidDataException(reason)
     }
   }
