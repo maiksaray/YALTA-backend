@@ -1,9 +1,11 @@
 package dao.mapping
 
+import java.time.Instant
+
 import com.byteslounge.slickrepo.meta.Entity
 import org.joda.time.DateTime
 
-case class Location(override val id: Option[Long], lat: Double, lon: Double, userId: Long, timestamp: DateTime) extends Entity[Location, Long] {
+case class Location(override val id: Option[Long], lat: Double, lon: Double, userId: Long, timestamp: Instant) extends Entity[Location, Long] {
   override def withId(id: Long): Location = this.copy(id = Some(id))
 
   /**
@@ -11,5 +13,5 @@ case class Location(override val id: Option[Long], lat: Double, lon: Double, use
    *  @example val location = Location(None, 10.0, 10.0, 1, null)
    *           location = location.withTimestamp(new Timestamp)
    */
-  def withTimestamp(timestamp: DateTime):Location = this.copy(timestamp = timestamp)
+  def withTimestamp(timestamp: Instant):Location = this.copy(timestamp = timestamp)
 }

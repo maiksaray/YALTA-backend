@@ -1,5 +1,7 @@
 package dao
 
+import java.time.Instant
+
 import dao.mapping.Location
 import dao.repo.LocationRepo
 import javax.inject.{Inject, Singleton}
@@ -16,7 +18,7 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
 
   def create(lat: Double, lon: Double, userId: Long): Future[common.Location] = {
     logger.info(s"Adding point $lat:$lon for user id $userId")
-    create(Location(None, lat, lon, userId, DateTime.now()))
+    create(Location(None, lat, lon, userId, Instant.now()))
   }
 
   def create(location: common.Location): Future[common.Location] = {

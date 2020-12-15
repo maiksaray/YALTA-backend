@@ -1,12 +1,13 @@
 package dao.repo
 
+import java.time.Instant
+
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.Location
 import javax.inject.{Inject, Singleton}
-import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
-import com.github.tototoshi.slick.GenericJodaSupport
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -14,9 +15,6 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
   import dbConfig._
   import profile.api._
-
-  object jodaMapper extends GenericJodaSupport(profile)
-  import jodaMapper._
 
   override type TableType = Locations
 
@@ -33,7 +31,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
     def userId = column[Long]("userId")
 
-    def timestamp = column[DateTime]("timestamp", O.SqlType("timestamp default now()"))
+    def timestamp = column[Instant]("timestamp", O.SqlType("timestamp default now()"))
 
     //    TODO:add FK for userID
 
@@ -51,7 +49,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
     save(location)
   }
 
-  def getRange(userId: Long, from: DateTime, to: DateTime): Future[Seq[Location]] = db.run {
+  def getRange(userId: Long, from: Instant, to: Instant): Future[Seq[Location]] = db.run {
     tableQuery.filter(location =>
         location.userId === userId &&
         location.timestamp >= from &&
