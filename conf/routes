@@ -15,14 +15,14 @@ GET     /vehicles/                  controllers.VehicleController.getVehicles
 GET     /users/                     controllers.UserController.getFiltered(name:String)
 GET     /users/:id                  controllers.UserController.get(id:Int)
 
-GET     /users/:id/locations/       controllers.LocationController.getHistory(id:Long, from:java.sql.Timestamp, to:java.sql.Timestamp)
+GET     /users/:id/locations/       controllers.LocationController.getHistory(id:Long, from:org.joda.time.DateTime, to:org.joda.time.DateTime)
 
 POST    /users/                     controllers.UserController.create
 POST    /users/me/password          controllers.UserController.changeOwnPass
 
 POST    /location/                  controllers.LocationController.update
 POST    /location/history/          controllers.LocationController.postHistory
-GET     /location/                  controllers.LocationController.getOwnHistory(from:java.sql.Timestamp, to:java.sql.Timestamp)
+GET     /location/                  controllers.LocationController.getOwnHistory(from:org.joda.time.DateTime, to:org.joda.time.DateTime)
 
 
 # Map static resources from the /public folder to the /assets URL path

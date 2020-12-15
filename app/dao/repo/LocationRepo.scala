@@ -1,6 +1,6 @@
 package dao.repo
 
-import java.sql.Timestamp
+import java.time.Instant
 
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.Location
@@ -31,7 +31,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 
     def userId = column[Long]("userId")
 
-    def timestamp = column[Timestamp]("timestamp", O.SqlType("timestamp default now()"))
+    def timestamp = column[Instant]("timestamp", O.SqlType("timestamp default now()"))
 
     //    TODO:add FK for userID
 
@@ -49,7 +49,7 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
     save(location)
   }
 
-  def getRange(userId: Long, from: Timestamp, to: Timestamp): Future[Seq[Location]] = db.run {
+  def getRange(userId: Long, from: Instant, to: Instant): Future[Seq[Location]] = db.run {
     tableQuery.filter(location =>
         location.userId === userId &&
         location.timestamp >= from &&
