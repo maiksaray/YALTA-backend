@@ -1,5 +1,4 @@
-import java.sql.Timestamp
-
+import org.joda.time.DateTime
 import org.scalatest.TestSuite
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
@@ -12,7 +11,7 @@ class LocationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSui
 
   def locationService(implicit app: Application) = Application.instanceCache[LocationService].apply(app)
 
-  val historyStart = new Timestamp(System.currentTimeMillis())
+  val historyStart = DateTime.now()
 
   "Location Serivce" must {
     "Create new locations" in {
@@ -36,7 +35,7 @@ class LocationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSui
     }
 
     "Get gistory" in {
-      val historyEnd = new Timestamp(System.currentTimeMillis())
+      val historyEnd = DateTime.now()
       val histpry = locationService.getHistory(1, historyStart, historyEnd)
       whenReady(histpry) {
         res => assert(res.length == 4)

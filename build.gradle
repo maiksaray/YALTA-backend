@@ -64,7 +64,7 @@ dependencies {
     implementation "com.typesafe.slick:slick_$projectScalaVersion:3.3.3"
     implementation "com.typesafe.play:play-slick-evolutions_$projectScalaVersion:4.0.2"
     implementation "com.byteslounge:slick-repo_$projectScalaVersion:1.5.3"
-
+    implementation "com.github.tototoshi:slick-joda-mapper_$projectScalaVersion:2.4.2"
     implementation "com.typesafe.play:play-logback_$projectScalaVersion:2.7.5"
 
     implementation "com.google.code.gson:gson:2.8.6"

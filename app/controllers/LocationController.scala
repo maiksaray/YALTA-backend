@@ -6,6 +6,7 @@ import common.Serialization.{INSTANCE => Json}
 import common._
 import dao.SessionDao
 import javax.inject.{Inject, Singleton}
+import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request}
 import security.UserAction
 import services.LocationService
@@ -77,7 +78,7 @@ class LocationController @Inject()(locationService: LocationService,
       }
   })
 
-  def getOwnHistory(from: Timestamp, to: Timestamp): Action[AnyContent] = securedAsync(Driver.INSTANCE :: Nil, Action.async {
+  def getOwnHistory(from: DateTime, to: DateTime): Action[AnyContent] = securedAsync(Driver.INSTANCE :: Nil, Action.async {
     request => {
       currentUser(request).flatMap {
         case Some(user) =>
@@ -96,7 +97,7 @@ class LocationController @Inject()(locationService: LocationService,
     }
   })
 
-  def getHistory(id: Long, from: Timestamp, to: Timestamp): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+  def getHistory(id: Long, from: DateTime, to: DateTime): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request =>
       logger.info(s"Location istory for user ${id} by admin from ${from} to ${to}")
       val history = locationService.getHistory(id, from, to)
