@@ -30,6 +30,8 @@ sourceSets {
 
 compileScala.classpath += files(compileKotlin.destinationDir)
 
+compilePlayRoutes.additionalImports = ["misc.binders._"]
+
 task debugPlay {
     def runPlayTask = tasks.findByName('runPlay')
     runPlayTask.forkOptions.jvmArgs = ['-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999']
@@ -51,6 +53,7 @@ task copyRunner {
 }
 
 tasks.stage.finalizedBy(copyRunner)
+tasks.test.setMaxParallelForks(1)
 
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"

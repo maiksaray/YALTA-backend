@@ -25,4 +25,13 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
     eventualLocation.map(locationDbToModel)
   }
 
+  def bulkCreate(locations: List[common.Location]): Future[Option[Int]] = {
+    repo.bulkCreate(locations.map(locationModeltoDb))
+  }
+
+  def getRange(userId: Long, from: Timestamp, to: Timestamp): Future[Seq[common.Location]] = {
+    repo.getRange(userId, from, to).map { seq =>
+      seq.map(locationDbToModel)
+    }
+  }
 }

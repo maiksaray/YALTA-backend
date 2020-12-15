@@ -46,9 +46,14 @@ class LocationRepo @Inject()(override val dbConfigProvider: DatabaseConfigProvid
 //  }
 
   override def create(location: Location): Future[Location] = db.run {
-//  This is commented since Autoinc doesn't work for timestamp in DB,
-//  So we use default save DBIO and pre-generated timestamp
-//    save(location)
-    save(location.withTimestamp(new Timestamp(System.currentTimeMillis())))
+    save(location)
+  }
+
+  def getRange(userId: Long, from: Timestamp, to: Timestamp): Future[Seq[Location]] = db.run {
+    tableQuery.filter(location =>
+        location.userId === userId &&
+        location.timestamp >= from &&
+        location.timestamp < to
+    ).result
   }
 }
