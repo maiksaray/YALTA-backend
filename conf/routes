@@ -12,7 +12,7 @@ POST    /logout                     controllers.IndexController.logout
 
 GET     /vehicles/                  controllers.VehicleController.getVehicles
 
-GET     /users                      controllers.UserController.getFiltered(name:String)
+GET     /users/                     controllers.UserController.getFiltered(name:String)
 GET     /users/:id                  controllers.UserController.get(id:Int)
 
 GET     /users/:id/locations/       controllers.LocationController.getHistory(id:Long, from:java.sql.Timestamp, to:java.sql.Timestamp)
