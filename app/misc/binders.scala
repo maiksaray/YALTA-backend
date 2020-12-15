@@ -1,10 +1,5 @@
 package misc
 
-import java.sql.Timestamp
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalAccessor
-
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import play.api.mvc.QueryStringBindable
