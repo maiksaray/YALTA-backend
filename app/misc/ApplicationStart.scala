@@ -1,6 +1,6 @@
 package misc
 
-import dao.{LocationDao, UserDao}
+import dao.{LocationDao, RouteDao, UserDao}
 import common.{Admin, Driver}
 
 import scala.concurrent.{Await, Future}
@@ -13,16 +13,19 @@ import play.api.inject.ApplicationLifecycle
 @Singleton
 class ApplicationStart @Inject()(userDao: UserDao,
                                  locationDao: LocationDao,
+                                 routeDao: RouteDao,
                                  lifecycle: ApplicationLifecycle) extends Logging {
 
   logger.info("Starting application, preparing db")
   //TODO: look at how the fuck evolutions should be done cause this is fucked up
-//  ALso, here we go around services layer, because we can
+  //  ALso, here we go around services layer, because we can
   Await.result(userDao.ensureExists(), 5 seconds)
   logger.info("Ensured db is in place and default users exist")
 
   Await.result(locationDao.ensureExists(), 5 seconds)
   logger.info("Inited location storage")
+
+  Await.result(routeDao.ensureExists(), 5 seconds)
 
   // Shut-down hook
   lifecycle.addStopHook { () =>

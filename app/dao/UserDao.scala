@@ -72,9 +72,7 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
     //    TODO:rework this!
     logger.info(s"Obtaining user with name $username")
     repo.findByName(username).map { option =>
-      option.map { user =>
-        userDbToModel(user)
-      }
+      option.map(userDbToModel)
     }
   }
 
