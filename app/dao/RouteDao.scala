@@ -22,6 +22,8 @@ class RouteDao @Inject()(pointRepo: PointRepo, routeRepo: RouteRepo, routePointR
   override def ensureExists(): Future[Unit] = {
     for {
       _ <- routeRepo.createTable()
+      _ <- routeRepo.createPointsTable()
+      _ <- routeRepo.createRoutePointsTable()
       _ <- routeRepo.createPoint(mapping.Point(None, 10.0, 10.0, "first"))
       _ <- routeRepo.createPoint(mapping.Point(None, 20.0, 20.0, "second"))
     } yield Future.successful(())

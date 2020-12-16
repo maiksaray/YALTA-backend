@@ -62,13 +62,18 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
 
   def points = TableQuery[Points]
 
+  def createPointsTable(): Future[Unit] = db.run {
+    points.schema.createIfNotExists
+  }
+
+  def createRoutePointsTable(): Future[Unit] = db.run {
+    routePoints.schema.createIfNotExists
+  }
+
   override def createTable(): Future[Unit] =
     db.run {
       tableQuery.schema.createIfNotExists
-      points.schema.createIfNotExists
-      routePoints.schema.createIfNotExists
     }
-
   //  def routeWithPointsMapping =
 
   def createPoint(point: Point) = db.run {
