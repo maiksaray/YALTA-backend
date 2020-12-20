@@ -21,9 +21,10 @@ class RouteController @Inject()(routeService: RouteService,
     request: Request[AnyContent] => {
       currentUser(request).flatMap {
         case Some(user) =>
-          logger.info(s"L")
+          logger.info(s"returning current route for user ${user.getId}")
           routeService.getCurrentRoute(user.getId).map {
-            route => Ok(Json.toJson(route))
+            case Some(route) => Ok(Json.toJson(route))
+            case None => NotFound("")
           }
         case None =>
           logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
@@ -33,20 +34,58 @@ class RouteController @Inject()(routeService: RouteService,
     }
   })
 
-  def assignRoute(routeId: Long, driverId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+  def getRoute(id: Long) = securedAsync(Driver.INSTANCE :: Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
-      routeService.assignRoute(routeId, driverId).map {
-        res => Ok("")
+      currentUser(request).flatMap {
+        case Some(user) =>
+          logger.info(s"returning route with id $id")
+          routeService.getRoute(user.getId).map {
+            case Some(route) => Ok(Json.toJson(route))
+            case None => NotFound("")
+          }
+        case None =>
+          logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
+          Future.successful(InternalServerError(Json.toJson(
+            new common.InternalServerError("No user found for existing session, this should never happen"))))
       }
     }
   })
 
-  def updatePointState(routeId: Long, routePointId: Long) = securedAsync(Driver.INSTANCE :: Nil, Action.async {
+  def assignRoute(routeId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+    request: Request[AnyContent] => {
+      logger.info("Driver assign request")
+      val body = request.body.asText
+      body match {
+        case Some(bodyString) =>
+          val assign = Json.fromJson(bodyString, classOf[common.AssignDriver])
+          logger.info(s"trying to assign $routeId to ${assign.getDriverId}")
+          routeService.assignRoute(routeId, assign.getDriverId).map {
+            _ => Ok("Assigned")
+          }.recover {
+            _ => InternalServerError("Assign failed/TODO: add special message =)")
+          }
+        case None =>
+          logger.info("Empty location update request, returning 401")
+          Future.successful(BadRequest(Json.toJson(
+            new BadRequest("Empty body not allowed for location update"))))
+      }
+    }
+  })
+
+  def updatePointState(routeId: Long, pointIndex: Int) = securedAsync(Driver.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
       currentUser(request).flatMap {
         case Some(user) =>
-          routeService.updatePointState(routeId, routePointId, user.getId).map{
-            res => Ok("")
+          val body = request.body.asText
+          body match {
+            case Some(bodyString) =>
+              val update = Json.fromJson(bodyString, classOf[common.UpdatePoint])
+              routeService.updatePointState(routeId, pointIndex, user.getId, update.getNewState).map {
+                _ => Ok("UPdated")
+              }.recover {
+                _ => InternalServerError("Update Failed/TODO: add special message =)")
+              }
+            case None => Future.successful(BadRequest(Json.toJson(new common.BadRequest(""))))
           }
         case None =>
           logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
@@ -62,7 +101,10 @@ class RouteController @Inject()(routeService: RouteService,
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
-          Future.successful(Ok(""))
+          val createRoute = Json.fromJson(bodyString, classOf[common.CreateRoute])
+          routeService.createRoute(createRoute.getDriverId, createRoute.getRouteDate, createRoute.getPoints).map {
+            route => Ok(Json.toJson(route))
+          }
         case None =>
           logger.info("Empty location update request, returning 401")
           Future.successful(BadRequest(Json.toJson(
@@ -71,7 +113,7 @@ class RouteController @Inject()(routeService: RouteService,
     }
   })
 
-  def addPoints(routeId:Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+  def addPoints(routeId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
       logger.info("Received postponed location update request")
       val body = request.body.asText

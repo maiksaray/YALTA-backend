@@ -1,6 +1,6 @@
 package dao.mapping
 
-import java.time.Instant
+import java.sql.Date
 
 import com.byteslounge.slickrepo.meta.Entity
 
@@ -8,12 +8,12 @@ case class Point(override val id: Option[Long], lat: Double, lon: Double, name: 
   override def withId(id: Long): Point = this.copy(id = Some(id))
 }
 
-case class RoutePoint(override val id: Option[Long], routeId: Long, pointId: Long, visited: Boolean) extends Entity[RoutePoint, Long] {
+case class RoutePoint(override val id: Option[Long], routeId: Long, pointId: Long, visited: Boolean, index: Int) extends Entity[RoutePoint, Long] {
 
   override def withId(id: Long): RoutePoint = this.copy(id = Some(id))
 }
 
-case class Route(override val id: Option[Long], driverID: Option[Long], date: Instant) extends Entity[Route, Long] {
+case class Route(override val id: Option[Long], driverID: Option[Long], date: Date) extends Entity[Route, Long] {
 
   override def withId(id: Long): Route = this.copy(id = Some(id))
 }

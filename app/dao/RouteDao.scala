@@ -2,22 +2,40 @@ package dao
 
 import java.util
 
-import common.{Point, Route}
 import dao.implicits.DateTimeTransform._
 import dao.implicits.IdTransform._
 import dao.implicits.RouteTransform._
+import dao.mapping.RoutePoint
 import dao.repo.{PointRepo, RoutePointRepo, RouteRepo}
 import javax.inject.{Inject, Singleton}
+import org.joda.time.DateTime
 import play.api.Logging
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
 @Singleton
 class RouteDao @Inject()(pointRepo: PointRepo, routeRepo: RouteRepo, routePointRepo: RoutePointRepo)(implicit ec: ExecutionContext)
   extends BaseDao[mapping.Route, Long, RouteRepo](routeRepo)(ec) with Logging {
+  def updatePointState(routeId: Long, pointIndex: Int, state: Boolean): Future[Unit] =
+    routeRepo.updatePointState(routeId, pointIndex, state).flatMap {
+      case 0 => Future.failed(new Exception("Can't update"))
+      case _ => Future.successful(())
+    }
 
-  def updateRoute(route: Route): Future[common.Route] = ???
+  def getCurrentRoute(userId: Long): Future[Option[common.Route]] = {
+    routeRepo.getRouteFor(userId, DateTime.now())
+      .map(composeRoute)
+  }
+
+  def assignRoute(routeId: Long, driverId: Long): Future[Unit] =
+    routeRepo.assignRoute(routeId, driverId).flatMap {
+      case 0 => Future.failed(new Exception("can't assign"))
+      case _ => Future.successful(())
+    }
+
+  def updateRoute(route: common.Route): Future[common.Route] = ???
 
   override def ensureExists(): Future[Unit] = {
     for {
@@ -48,75 +66,45 @@ class RouteDao @Inject()(pointRepo: PointRepo, routeRepo: RouteRepo, routePointR
       case _ => Future.successful(point)
     }
 
-  def createRoutePoints(points: util.List[common.RoutePoint], routeId: Long): Future[util.List[common.RoutePoint]] = {
-    routeRepo.createRoutePointsWithId(
-      points.asScala.map {
-        p => mapping.RoutePoint(p.getId, routeId, p.getPoint.getId, p.getVisited)
-      }.toList
-    ).map {
-      col =>
-        col.map {
-          rp => new common.RoutePoint(rp.id, null, rp.visited)
-        }.toList.asJava
+  def createRoutePoints(points: util.List[common.Point], routeId: Long): Future[util.List[common.RoutePoint]] = {
+    val rps = points.asScala.zipWithIndex.map {
+      case (p, i) => RoutePoint(None, routeId, p.getId, visited = false, i)
+    }
+    routeRepo.createRoutePointsWithId(rps).map { seq =>
+      seq.map {
+        rp => new common.RoutePoint(rp.id, points.get(rp.index), rp.visited, rp.index)
+      }.asJava
     }
   }
 
-  def createRoutePointsWithPoints(points: util.List[common.RoutePoint], routeId: Long): Future[util.List[common.RoutePoint]] =
-  //    Convert java collection to scala one for iteration
-    points.asScala.map { p =>
-      //      Map common.RoutePoint to pair of mapping.RoutePoint and underlying point
-      //      Passing point here is needed to append it back to freshly created ROutePoint with Id
-      (mapping.RoutePoint(p.getId, routeId, p.getPoint.getId, p.getVisited),
-        p.getPoint)
-    }.map {
-      case (rp, p) =>
-        //        Create RoutePoint in DB, and convert it back to common.RoutePoint with saved Point from before
-        routeRepo.createRoutePoint(rp).map { created =>
-          new common.RoutePoint(created.id, p, created.visited)
-        }
-      //        Since we got collection of Futures here, we'd want to fold those into Future of Collections
-    }.foldLeft(
-      //      Start folding with java collection so that we don't have to convert anymore
-      Future.successful(List[common.RoutePoint]().asJava)
-    ) {
-      (acc: Future[util.List[common.RoutePoint]], f: Future[common.RoutePoint]) =>
-        //        unwrap list/item from futures, append item and wrap it back
-        for {
-          list <- acc
-          rp <- f
-        } yield {
-          list.add(rp)
-          list
-        }
-    }
-
-
-  def createRoute(route: common.Route): Future[common.Route] = {
+  def createRoute(driverId: Long, routeDate: DateTime, points: util.List[common.Point]): Future[common.Route] = {
+    val route = mapping.Route(None, nullableToOption(driverId), routeDate)
     for {
       created <- routeRepo.create(route)
-      points <- createRoutePointsWithPoints(route.getPoints, created.id.get)
+      points <- createRoutePoints(points, created.id.get)
     } yield {
       routeDbToModelWithPoints(created, points)
     }
   }
 
   def getRoute(id: Long): Future[Option[common.Route]] = {
-    //    Oh myyy, I' sorry, I don't know rly, it's all slick...
-    routeRepo.get(id).map { seq =>
-      if (seq.isEmpty) {
-        None
-      } else {
-        val firstRoute = seq.head._1
-        val foldStart = new common.Route(firstRoute.id, firstRoute.driverID, firstRoute.date, new util.ArrayList[common.RoutePoint](), false)
-        Some(
-          seq.foldLeft[common.Route](foldStart) {
-            (route, row) =>
-              val point = new common.Point(row._3.id, row._3.lat, row._3.lon, row._3.name)
-              val routePoint = new common.RoutePoint(row._2.id, point, row._2.visited)
-              route.getPoints.add(routePoint)
-              route
-          })
-      }
+    routeRepo.getRoute(id)
+      .map(composeRoute)
+  }
+
+  private def composeRoute(routeParts: Seq[(mapping.Route, RoutePoint, mapping.Point)]): Option[common.Route] = {
+    routeParts match {
+      case seq@Seq() =>
+        val routePart = seq.head._1
+        val points = seq.foldLeft(ListBuffer[common.RoutePoint]()) {
+          (list, data) =>
+            val pointData = data._3
+            val rpData = data._2
+            val point = new common.Point(pointData.id, pointData.lat, pointData.lon, pointData.name)
+            list += new common.RoutePoint(rpData.id, point, rpData.visited, rpData.index)
+        }
+        Some(new common.Route(routePart.id, routePart.driverID, routePart.date, points.asJava, false))
+      case _ => None
     }
   }
 }

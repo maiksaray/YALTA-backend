@@ -8,7 +8,7 @@ import dao.mapping.{Point, Route, RoutePoint}
 
 object RouteTransform {
 
-  def routeDbToModelWithPoints(route:Route, routePoints: java.util.List[common.RoutePoint]) = {
+  def routeDbToModelWithPoints(route: Route, routePoints: java.util.List[common.RoutePoint]) = {
     new common.Route(route.id, route.driverID, route.date, routePoints, false)
   }
 

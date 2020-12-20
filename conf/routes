@@ -30,6 +30,11 @@ POST    /points/                    controllers.PointController.createPoint
 PUT     /points/:id/name            controllers.PointController.changeName(id:Long)
 PUT     /points/:id/location        controllers.PointController.changeLocation(id:Long)
 
+POST    /routes/                    controllers.RouteController.createRoute
+GET     /routes/current             controllers.RouteController.getCurrentRoute
+GET     /routes/:id                 controllers.RouteController.getRoute(id:Long)
+PUT     /routes/:id/driver          controllers.RouteController.assignRoute(id:Long)
+PUT     /routes/:id/points/:index   controllers.RouteController.updatePointState(id:Long, index:Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
