@@ -70,19 +70,31 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
     routePoints.schema.createIfNotExists
   }
 
-  override def createTable(): Future[Unit] =
-    db.run {
-      tableQuery.schema.createIfNotExists
-    }
+  override def createTable(): Future[Unit] = db.run {
+    tableQuery.schema.createIfNotExists
+  }
+
   //  def routeWithPointsMapping =
 
-  def createPoint(point: Point) = db.run {
+  def createPoint(point: Point): Future[Point] = db.run {
     ((points returning points.map(_.id)) += point).map(point.withId)
   }
 
   def getPoint(id: Long): Future[Option[Point]] = db.run {
     points.filter(_.id === id).result.headOption
   }
+
+  def getAllPoints(): Future[Seq[Point]] = db.run {
+    points.result
+  }
+
+  private def pointUdateQuery(pointId: Option[Long]) =
+    for {p <- points if p.id === pointId} yield (p.lat, p.lon, p.name)
+
+  def updatePoint(point: Point): Future[Int] = db.run {
+    pointUdateQuery(point.id).update(point.lat, point.lon, point.name)
+  }
+
 
   def createRoutePoint(routePoint: RoutePoint) = db.run {
     ((routePoints returning routePoints.map(_.id)) += routePoint).map(routePoint.withId)

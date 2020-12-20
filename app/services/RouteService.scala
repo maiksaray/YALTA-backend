@@ -1,7 +1,7 @@
 package services
 
 import java.sql.Timestamp
-import java.util
+import java.{lang, util}
 
 import com.google.inject.{Inject, Singleton}
 import common.{Route, RoutePoint}
@@ -14,6 +14,22 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) extends Logging {
+
+
+  def getPoints(): Future[List[common.Point]] =
+    routeDao.getPoints().map {
+      seq => seq.toList
+    }
+
+  def getPoint(pointId: Long): Future[Option[common.Point]] =
+    routeDao.getPoint(pointId)
+
+  def updatePointState(routeId: Long, routePointId: Long, userId: Long): Future[common.RoutePoint] = ???
+
+  def assignRoute(routeId: Long, driverId: Long): Future[Route] = ???
+
+  def getCurrentRoute(userId: Long): Future[common.Route] = ???
+
   // point part
   def createPoint(lat: Double, lon: Double, name: String): Future[common.Point] =
     createPoint(new common.Point(null, lat, lon, name))
@@ -34,23 +50,27 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
   def changePointName(id: Long, name: String): Future[common.Point] = {
     updatePoint(id, point => new common.Point(point.getId, point.getLat, point.getLon, name))
   }
-//
-//  // route point part
-//  def createRoutePoint(point: common.Point): Future[common.RoutePoint] =
-//    createRoutePoint(new common.RoutePoint(null, point, false))
 
-//  def updateRoutePoint(id: Long, change: RoutePoint => RoutePoint): Future[RoutePoint] = {
-//    routeDao.getRoutePoint(id).map {
-//      case None => throw new YaltaBaseException(s"RoutePoint with $id does not exist, can't update")
-//      case Some(routePoint) => routePoint
-//    }.flatMap {
-//      routePoint => routeDao.updateRoutePoint(change(routePoint))
-//    }
-//  }
-//
-//  def changeRoutePointStatus(id: Long, visited: Boolean): Future[RoutePoint] = {
-//    updateRoutePoint(id, routePoint => new RoutePoint(routePoint.getId, routePoint.getPoint, visited))
-//  }
+  def changePointLocation(pointId: Long, lat: Double, lon: Double): Future[common.Point] =
+    updatePoint(pointId, point => new common.Point(point.getId, lat, lon, point.getName))
+
+  //
+  //  // route point part
+  //  def createRoutePoint(point: common.Point): Future[common.RoutePoint] =
+  //    createRoutePoint(new common.RoutePoint(null, point, false))
+
+  //  def updateRoutePoint(id: Long, change: RoutePoint => RoutePoint): Future[RoutePoint] = {
+  //    routeDao.getRoutePoint(id).map {
+  //      case None => throw new YaltaBaseException(s"RoutePoint with $id does not exist, can't update")
+  //      case Some(routePoint) => routePoint
+  //    }.flatMap {
+  //      routePoint => routeDao.updateRoutePoint(change(routePoint))
+  //    }
+  //  }
+  //
+  //  def changeRoutePointStatus(id: Long, visited: Boolean): Future[RoutePoint] = {
+  //    updateRoutePoint(id, routePoint => new RoutePoint(routePoint.getId, routePoint.getPoint, visited))
+  //  }
 
 
   // route part

@@ -24,6 +24,12 @@ POST    /location/                  controllers.LocationController.update
 POST    /location/history/          controllers.LocationController.postHistory
 GET     /location/                  controllers.LocationController.getOwnHistory(from:org.joda.time.DateTime, to:org.joda.time.DateTime)
 
+GET     /points/                    controllers.PointController.getPoints
+GET     /points/:id                 controllers.PointController.getPoint(id:Long)
+POST    /points/                    controllers.PointController.createPoint
+PUT     /points/:id/name            controllers.PointController.changeName(id:Long)
+PUT     /points/:id/location        controllers.PointController.changeLocation(id:Long)
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

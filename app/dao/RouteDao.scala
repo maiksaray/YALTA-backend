@@ -2,7 +2,7 @@ package dao
 
 import java.util
 
-import common.Route
+import common.{Point, Route}
 import dao.implicits.DateTimeTransform._
 import dao.implicits.IdTransform._
 import dao.implicits.RouteTransform._
@@ -37,7 +37,16 @@ class RouteDao @Inject()(pointRepo: PointRepo, routeRepo: RouteRepo, routePointR
       opt => opt.map(pointDbToModel)
     }
 
-  def updatePoint(point: common.Point): Future[common.Point] = ???
+  def getPoints(): Future[Seq[common.Point]] =
+    routeRepo.getAllPoints().map {
+      f => f.map(pointDbToModel)
+    }
+
+  def updatePoint(point: common.Point): Future[common.Point] =
+    routeRepo.updatePoint(point).flatMap {
+      case 0 => Future.failed(new Exception("can't update point"))
+      case _ => Future.successful(point)
+    }
 
   def createRoutePoints(points: util.List[common.RoutePoint], routeId: Long): Future[util.List[common.RoutePoint]] = {
     routeRepo.createRoutePointsWithId(
