@@ -1,10 +1,9 @@
 package services
 
-import java.sql.Timestamp
-import java.{lang, util}
+import java.util
 
 import com.google.inject.{Inject, Singleton}
-import common.{Route, RoutePoint}
+import common.Route
 import dao.RouteDao
 import exceptions.YaltaBaseException
 import org.joda.time.DateTime
@@ -14,7 +13,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) extends Logging {
-
 
   def getPoints(): Future[List[common.Point]] =
     routeDao.getPoints().map {
