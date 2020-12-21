@@ -1,12 +1,12 @@
 package controllers
 
+import common.Serialization.{INSTANCE => Json}
 import common.{Admin, BadRequest, Driver}
 import dao.SessionDao
 import javax.inject.Inject
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Request}
 import security.UserAction
-import services.{LocationService, RouteService}
-import common.Serialization.{INSTANCE => Json}
+import services.RouteService
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,10 +39,21 @@ class RouteController @Inject()(routeService: RouteService,
       currentUser(request).flatMap {
         case Some(user) =>
           logger.info(s"returning route with id $id")
-          routeService.getRoute(user.getId).map {
-            case Some(route) => Ok(Json.toJson(route))
+          routeService.getRoute(id).map {
+            case Some(route) =>
+              val response = Ok(Json.toJson(route))
+              user.getRole match {
+                case Admin.INSTANCE => response
+                case Driver.INSTANCE =>
+                  if (route.getDriverId == user.getId) {
+                    response
+                  } else {
+                    Unauthorized(unauthorizedError)
+                  }
+              }
             case None => NotFound("")
           }
+
         case None =>
           logger.error(s"User session was verified, but now no user found, THIS SHOULD NEVER HAPPEN")
           Future.successful(InternalServerError(Json.toJson(
@@ -119,7 +130,7 @@ class RouteController @Inject()(routeService: RouteService,
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
-          Future.successful(Ok(""))
+          Future.successful(NotImplemented(""))
         case None =>
           logger.info("Empty location update request, returning 401")
           Future.successful(BadRequest(Json.toJson(

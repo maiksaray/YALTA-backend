@@ -47,14 +47,23 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
   def changePointLocation(pointId: Long, lat: Double, lon: Double): Future[common.Point] =
     updatePoint(pointId, point => new common.Point(point.getId, lat, lon, point.getName))
 
-  def updatePointState(routeId: Long, pointIndex: Int, userId:Long, state: Boolean): Future[Unit] =
+  def updateCurrentPointState(pointIndex: Int, userId: Long, state: Boolean): Future[Unit] =
+    routeDao.getCurrentRouteId(userId).map {
+      case Some(id) => routeDao.updatePointState(id, pointIndex, state)
+      case None => Future.failed(new Exception(""))
+    }
+
+  def updatePointState(routeId: Long, pointIndex: Int, userId: Long, state: Boolean): Future[Unit] =
     routeDao.updatePointState(routeId, pointIndex, state)
 
   def assignRoute(routeId: Long, driverId: Long): Future[Unit] =
     routeDao.assignRoute(routeId, driverId)
 
   def getCurrentRoute(userId: Long): Future[Option[common.Route]] =
-    routeDao.getCurrentRoute(userId)
+    routeDao.getCurrentRouteId(userId).flatMap {
+      case Some(id) => routeDao.getRoute(id)
+      case None => Future.successful(None)
+    }
 
   def getRoute(id: Long): Future[Option[common.Route]] =
     routeDao.getRoute(id)

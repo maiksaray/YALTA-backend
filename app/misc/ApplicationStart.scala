@@ -25,7 +25,7 @@ class ApplicationStart @Inject()(userDao: UserDao,
   Await.result(locationDao.ensureExists(), 5 seconds)
   logger.info("Inited location storage")
 
-  Await.result(routeDao.ensureExists(), 5 seconds)
+  Await.result(routeDao.ensureExists(), 100 seconds)
   logger.info("Inited route storage")
 
   // Shut-down hook

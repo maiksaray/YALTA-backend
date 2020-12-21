@@ -5,14 +5,13 @@ import java.sql.Date
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
-                          pointRepo: PointRepo,
-                          configProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends CommonRepo[Route, Long](configProvider) {
 
   import dbConfig._
@@ -64,6 +63,8 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
 
   def points = TableQuery[Points]
 
+  //region points
+
   def createPointsTable(): Future[Unit] = db.run {
     points.schema.createIfNotExists
   }
@@ -95,6 +96,9 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
     pointUdateQuery(point.id).update(point.lat, point.lon, point.name)
   }
 
+  //endregion
+
+  //region routePoints
 
   def createRoutePoint(routePoint: RoutePoint) = db.run {
     ((routePoints returning routePoints.map(_.id)) += routePoint).map(routePoint.withId)
@@ -104,20 +108,21 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
     routePoints ++= points
   }
 
-  def bulkInsertQuery =
+  def RoutePointBulkInsertQuery =
     (routePoints returning routePoints.map(_.id)).into((routePoint, id) => routePoint.withId(id))
 
   def createRoutePointsWithId(points: Iterable[RoutePoint]): Future[Seq[RoutePoint]] = db.run {
-    bulkInsertQuery ++= points
+    RoutePointBulkInsertQuery ++= points
   }
 
   def pointStateUpdateQuery(routeId: Long, index: Int) =
     for {rp <- routePoints if rp.routeId === routeId && rp.index === index} yield (rp.visited)
 
-  def updatePointState(routeId: Long, pointIndex: Int, state:Boolean) = db.run {
+  def updatePointState(routeId: Long, pointIndex: Int, state: Boolean) = db.run {
     pointStateUpdateQuery(routeId, pointIndex).update(state)
   }
 
+  //endregion
 
   def assignQuery(id: Option[Long]) =
     for {r <- tableQuery if r.id === id} yield r.driverId
@@ -148,19 +153,12 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
     }
   }
 
-  def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
-    //    TODO: make custom mapping instead of this shiet with tuples
-    val maybeRoute = getRouteWithPointsQuery(id).result
-    maybeRoute.map {
-      _.map {
-        case (rid, driverId, date,
-        rpid, visited, index,
-        pid, lat, lon, name) =>
-          (Route(Some(rid), Some(driverId), date),
-            RoutePoint(Some(rpid), 0, 0, visited, index),
-            Point(Some(pid), lat, lon, name))
-      }
-    }
+  def getRouteIdFor(userId: Long, time: Date): Future[Option[Long]] = db.run {
+    tableQuery
+      .filter(_.driverId === userId)
+      .filter(_.date === time)
+      .map(_.id)
+      .result.headOption
   }
 
   private def getRouteWithPointsQuery(id: Long) = {
@@ -172,63 +170,18 @@ class RouteRepo @Inject()(routePointRepo: RoutePointRepo,
       rp.id, rp.visited, rp.index,
       p.id, p.lat, p.lon, p.name)
   }
-}
 
-//Not really used
-@Deprecated
-class RoutePointRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends CommonRepo[RoutePoint, Long](configProvider) {
-
-  import dbConfig._
-  import profile.api._
-
-  override type TableType = RoutePoints
-
-  override def pkType = implicitly[BaseTypedType[Long]]
-
-  override def tableQuery = TableQuery[RoutePoints]
-
-
-  class RoutePoints(tag: Tag) extends Table[RoutePoint](tag, "route_point") with Keyed[Long] {
-    override def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-
-    def routeId = column[Long]("routeId")
-
-    def pointId = column[Long]("pointId")
-
-    def visited = column[Boolean]("visisted")
-
-    def index = column[Int]("index")
-
-    override def * = (id.?, routeId, pointId, visited, index) <> ((RoutePoint.apply _).tupled, RoutePoint.unapply)
+  def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
+    //    TODO: make custom mapping instead of this shiet with tuples
+    getRouteWithPointsQuery(id).result.map {
+      _.map {
+        case (rid, driverId, date,
+        rpid, visited, index,
+        pid, lat, lon, name) =>
+          (Route(Some(rid), Some(driverId), date),
+            RoutePoint(Some(rpid), 0, 0, visited, index),
+            Point(Some(pid), lat, lon, name))
+      }
+    }
   }
-
-}
-
-//Not really used...
-@Deprecated
-class PointRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends CommonRepo[Point, Long](configProvider) {
-
-  import dbConfig._
-  import profile.api._
-
-  override type TableType = Points
-
-  override def pkType = implicitly[BaseTypedType[Long]]
-
-  override def tableQuery = TableQuery[Points]
-
-  class Points(tag: Tag) extends Table[Point](tag, "points") with Keyed[Long] {
-    override def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-
-    def lat = column[Double]("lat")
-
-    def lon = column[Double]("lon")
-
-    def name = column[String]("name")
-
-    def * = (id.?, lat, lon, name) <> ((Point.apply _).tupled, Point.unapply)
-  }
-
 }
