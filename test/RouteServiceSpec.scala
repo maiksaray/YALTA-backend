@@ -59,7 +59,6 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
               }
           }
       }
-
     }
 
     "not create second route" in {
@@ -95,10 +94,10 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
     }
 
     "return current route" in {
-      whenReady(routeService.getCurrentRoute(3)) {
+      whenReady(routeService.getCurrentRoute(2)) {
         r =>
           assert(r.value != null)
-          assert(r.value.getDriverId == 3)
+          assert(r.value.getDriverId == 2)
       }
     }
 

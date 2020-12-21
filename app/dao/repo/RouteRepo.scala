@@ -5,7 +5,6 @@ import java.sql.Date
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
-import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
