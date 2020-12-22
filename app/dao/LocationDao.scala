@@ -7,6 +7,7 @@ import dao.repo.LocationRepo
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}
+import implicits.DateTimeTransform._
 import implicits.LocationTransform._
 import org.joda.time.DateTime
 import play.api.Logging
