@@ -41,7 +41,6 @@ task debugPlay {
     }
 }
 
-
 //This accompanies playBinary task, but copies custom runner that can be run by heroku with it's env.
 //Related issues: https://github.com/gradle/playframework/issues/81
 task copyRunner {

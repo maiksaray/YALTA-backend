@@ -40,6 +40,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   //region point
 
   def createPoint(point: common.Point): Future[common.Point] =
+//    TODO: check name exists
     routeRepo.createPoint(point).map(pointDbToModel)
 
   def getPoint(id: Long): Future[Option[common.Point]] =
@@ -49,7 +50,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def getPoints(): Future[Seq[common.Point]] =
     routeRepo.getAllPoints().map {
-      f => f.map(pointDbToModel)
+      points => points.map(pointDbToModel)
     }
 
   def updatePoint(point: common.Point): Future[common.Point] =
@@ -64,7 +65,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def createRoutePoints(points: util.List[common.Point], routeId: Long): Future[util.List[common.RoutePoint]] = {
     val rps = points.asScala.zipWithIndex.map {
-      case (p, i) => RoutePoint(None, routeId, p.getId, visited = false, i)
+      case (point, index) => RoutePoint(None, routeId, point.getId, visited = false, index)
     }
     routeRepo.createRoutePointsWithId(rps).map { seq =>
       seq.map {

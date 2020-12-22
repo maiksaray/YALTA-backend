@@ -1,15 +1,15 @@
 package controllers
 
+import common.Serialization.{INSTANCE => Json}
 import common.{Admin, BadRequest, Driver}
 import dao.SessionDao
+import javax.inject.{Inject, Singleton}
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Request}
 import security.UserAction
 import services.RouteService
-import common.Serialization.{INSTANCE => Json}
-import javax.inject.{Inject, Singleton}
-import scala.jdk.CollectionConverters._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class PointController @Inject()(routeService: RouteService,
@@ -21,56 +21,65 @@ class PointController @Inject()(routeService: RouteService,
 
   def createPoint() = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
-      logger.info("Received postponed location update request")
+      logger.info("Received point creation request")
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
           val point = Json.fromJson(bodyString, classOf[common.Point])
+          logger.info(s"Trying to create point ${point.getName}")
           routeService.createPoint(point).map {
-            created => Ok(Json.toJson(created))
+            created =>
+              logger.info(s"Point ${point.getName} created")
+              Ok(Json.toJson(created))
           }
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty point creation request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })
 
   def changeName(pointId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
-      logger.info("Received postponed location update request")
+      logger.info("Received point name change request")
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
           //          TODO: switch to something with just the name
           val update = Json.fromJson(bodyString, classOf[common.Point])
+          logger.info(s"Trying to change point ${update.getId} to ${update.getName}")
           routeService.changePointName(pointId, update.getName).map {
-            updated => Ok(Json.toJson(updated))
+            updated =>
+              logger.info(s"Point ${updated.getId} name changed to ${update.getName}")
+              Ok(Json.toJson(updated))
           }
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty point name update request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })
 
   def changeLocation(pointId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
-      logger.info("Received postponed location update request")
+      logger.info("Received point location change request")
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
-          //          TODO: switch to something with just the name
+          //          TODO: switch to something with just the location?
           val update = Json.fromJson(bodyString, classOf[common.Point])
+          logger.info(s"Trying to change point ${update.getId} to ${update.getLat}, ${update.getLon}")
           routeService.changePointLocation(pointId, update.getLat, update.getLon).map {
-            updated => Ok(Json.toJson(updated))
+            updated =>
+              logger.info(s"Changed point ${update.getId} to ${update.getLat}, ${update.getLon}")
+              Ok(Json.toJson(updated))
           }
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty point location update request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })
@@ -78,8 +87,12 @@ class PointController @Inject()(routeService: RouteService,
   def getPoint(pointId: Long) = securedAsync(Driver.INSTANCE :: Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
       routeService.getPoint(pointId).map {
-        case Some(point) => Ok(Json.toJson(point))
-        case None => NotFound(Json.toJson(new common.BadRequest(s"Point with id $pointId not found")))
+        case Some(point) =>
+          logger.info(s"returning point ${point.getId}")
+          Ok(Json.toJson(point))
+        case None =>
+          logger.info(s"Point ${pointId} not found")
+          NotFound(Json.toJson(new common.BadRequest(s"Point with id $pointId not found")))
       }
     }
   })
@@ -87,7 +100,9 @@ class PointController @Inject()(routeService: RouteService,
   def getPoints() = securedAsync(Driver.INSTANCE :: Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
       routeService.getPoints().map {
-        points => Ok(Json.toJson(points.asJava))
+        points =>
+          logger.info(s"returning all points")
+          Ok(Json.toJson(points.asJava))
       }
     }
   })

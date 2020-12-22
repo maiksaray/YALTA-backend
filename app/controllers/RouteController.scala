@@ -1,7 +1,7 @@
 package controllers
 
 import common.Serialization.{INSTANCE => Json}
-import common.{ActionFailed, Admin, BadRequest, Driver, NotFoundError}
+import common._
 import dao.SessionDao
 import javax.inject.Inject
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Request}
@@ -48,9 +48,12 @@ class RouteController @Inject()(routeService: RouteService,
               val response = Ok(Json.toJson(route))
               logger.info(s"maybe returning route ${route.getId} to ${user.getId}")
               user.getRole match {
-                case Admin.INSTANCE => response
+                case Admin.INSTANCE =>
+                  logger.warn(s"user ${user.getId} can see route ${route.getId}, returning")
+                  response
                 case Driver.INSTANCE =>
                   if (route.getDriverId == user.getId) {
+                    logger.warn(s"user ${user.getId} can see route ${route.getId}, returning")
                     response
                   } else {
                     logger.warn(s"user ${user.getId} can't see route ${route.getId}")
@@ -88,9 +91,9 @@ class RouteController @Inject()(routeService: RouteService,
               InternalServerError(Json.toJson(new ActionFailed("Can't assign")))
           }
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty route assignment request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })
@@ -138,24 +141,24 @@ class RouteController @Inject()(routeService: RouteService,
               Ok(Json.toJson(route))
           }
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty route creation request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })
 
   def addPoints(routeId: Long) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
-      logger.info("Received postponed location update request")
+      logger.info(s"Received request to add points to route ${routeId}")
       val body = request.body.asText
       body match {
         case Some(bodyString) =>
           Future.successful(NotImplemented(""))
         case None =>
-          logger.info("Empty location update request, returning 401")
+          logger.info("Empty points addition to route request, returning 401")
           Future.successful(BadRequest(Json.toJson(
-            new BadRequest("Empty body not allowed for location update"))))
+            new BadRequest("Empty body not allowed"))))
       }
     }
   })

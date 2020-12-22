@@ -132,12 +132,12 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
 
   private def userDateRouteQuery(userId: Long, time: Date) =
     for {
-      r <- tableQuery if r.driverId === userId && r.date === time
-      rp <- routePoints if r.id === rp.routeId
-      p <- points if r.id === p.id
-    } yield (r.id, r.driverId, r.date,
-      rp.id, rp.visited, rp.index,
-      p.id, p.lat, p.lon, p.name)
+      route <- tableQuery if route.driverId === userId && route.date === time
+      routePoint <- routePoints if route.id === routePoint.routeId
+      point <- points if route.id === point.id
+    } yield (route.id, route.driverId, route.date,
+      routePoint.id, routePoint.visited, routePoint.index,
+      point.id, point.lat, point.lon, point.name)
 
   def getRouteFor(userId: Long, time: Date): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     userDateRouteQuery(userId, time).result.map {
@@ -162,12 +162,12 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
 
   private def getRouteWithPointsQuery(id: Long) = {
     for {
-      r <- tableQuery if r.id === id
-      rp <- routePoints if r.id === rp.routeId
-      p <- points if r.id === p.id
-    } yield (r.id, r.driverId, r.date,
-      rp.id, rp.visited, rp.index,
-      p.id, p.lat, p.lon, p.name)
+      route <- tableQuery if route.id === id
+      routePoint <- routePoints if route.id === routePoint.routeId
+      point <- points if routePoint.pointId === point.id
+    } yield (route.id, route.driverId, route.date,
+      routePoint.id, routePoint.visited, routePoint.index,
+      point.id, point.lat, point.lon, point.name)
   }
 
   def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
