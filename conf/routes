@@ -12,12 +12,29 @@ POST    /logout                     controllers.IndexController.logout
 
 GET     /vehicles/                  controllers.VehicleController.getVehicles
 
-GET     /users                      controllers.UserController.getFiltered(name:String)
+GET     /users/                     controllers.UserController.getFiltered(name:String)
 GET     /users/:id                  controllers.UserController.get(id:Int)
+
+GET     /users/:id/locations/       controllers.LocationController.getHistory(id:Long, from:org.joda.time.DateTime, to:org.joda.time.DateTime)
+
 POST    /users/                     controllers.UserController.create
 POST    /users/me/password          controllers.UserController.changeOwnPass
 
 POST    /location/                  controllers.LocationController.update
+POST    /location/history/          controllers.LocationController.postHistory
+GET     /location/                  controllers.LocationController.getOwnHistory(from:org.joda.time.DateTime, to:org.joda.time.DateTime)
+
+GET     /points/                    controllers.PointController.getPoints
+GET     /points/:id                 controllers.PointController.getPoint(id:Long)
+POST    /points/                    controllers.PointController.createPoint
+PUT     /points/:id/name            controllers.PointController.changeName(id:Long)
+PUT     /points/:id/location        controllers.PointController.changeLocation(id:Long)
+
+POST    /routes/                    controllers.RouteController.createRoute
+GET     /routes/current             controllers.RouteController.getCurrentRoute
+GET     /routes/:id                 controllers.RouteController.getRoute(id:Long)
+PUT     /routes/:id/driver          controllers.RouteController.assignRoute(id:Long)
+PUT     /routes/:id/points/:index   controllers.RouteController.updatePointState(id:Long, index:Int)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
