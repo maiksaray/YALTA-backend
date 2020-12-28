@@ -183,4 +183,26 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       }
     }
   }
+
+  private def userRoutesQuery(userId: Long) =
+    for {
+      route <- tableQuery if route.driverId === userId
+      routePoint <- routePoints if route.id === routePoint.routeId
+      point <- points if route.id === point.id
+    } yield (route.id, route.driverId, route.date,
+      routePoint.id, routePoint.visited, routePoint.index,
+      point.id, point.lat, point.lon, point.name)
+
+  def getRoutesFor(userId: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
+    userRoutesQuery(userId).result.map {
+      _.map {
+        case (rid, driverId, date,
+        rpid, visited, index,
+        pid, lat, lon, name) =>
+          (Route(Some(rid), Some(driverId), date),
+            RoutePoint(Some(rpid), 0, 0, visited, index),
+            Point(Some(pid), lat, lon, name))
+      }
+    }
+  }
 }

@@ -63,6 +63,9 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
       case None => Future.successful(None)
     }
 
+  def getRoutes(userId: Long): Future[util.List[common.Route]] =
+    routeDao.getRoutes(userId)
+
   def getRoute(id: Long): Future[Option[common.Route]] =
     routeDao.getRoute(id)
 

@@ -28,8 +28,11 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
       routeRepo.getPoint(1).flatMap {
         case None =>
           for {
-            p1 <- createPoint(mapping.Point(None, 10.0, 10.0, "first"))
-            p2 <- createPoint(mapping.Point(None, 20.0, 20.0, "second"))
+            p1 <- createPoint(mapping.Point(None, 59.7265, 30.4176, "first"))
+            p2 <- createPoint(mapping.Point(None, 59.7230, 30.4292, "second"))
+            _ <- createRoute(2L, DateTime.now().minusDays(3), List(p2, p1).asJava)
+            _ <- updatePointState(1, 0, true)
+            _ <- updatePointState(1, 1, true)
             _ <- createRoute(2L, DateTime.now(), List(p1, p2).asJava)
           } yield Future.successful(())
         case _ => Future.successful(())
@@ -124,6 +127,17 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def getCurrentRouteId(userId: Long): Future[Option[Long]] = {
     routeRepo.getRouteIdFor(userId, DateTime.now())
+  }
+
+  def getRoutes(id: Long): Future[util.List[common.Route]] = {
+    routeRepo.getRoutesFor(id)
+      .map {
+        seq =>
+          seq.groupBy(_._1.id).values.map {
+            rows =>
+              composeRoute(rows).get
+          }.toList.sortBy(_.getRouteDate).reverse.asJava
+      }
   }
 
   def assignRoute(routeId: Long, driverId: Long): Future[Unit] =

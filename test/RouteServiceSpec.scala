@@ -91,6 +91,15 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
       }
     }
 
+    "return all routes" in {
+      whenReady(routeService.getRoutes(2)) {
+        routes =>
+          assert(routes.size() == 2)
+          assert(routes.get(0).getDriverId == 2)
+          assert(routes.get(1).getDriverId == 2)
+      }
+    }
+
     "update point state" in {
       whenReady(routeService.updatePointState(2, 0, 3, state = true)) { _ =>
         whenReady(routeService.getRoute(2)) {
