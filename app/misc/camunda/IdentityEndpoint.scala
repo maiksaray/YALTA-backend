@@ -4,7 +4,6 @@ import javax.inject.Inject
 import play.api.Configuration
 import common.Serialization.{INSTANCE => Json}
 
-
 case class GroupInfo(id: String, name: String)
 
 case class UserInfo(id: String, firstName: String, lastName: String, displayName: String)

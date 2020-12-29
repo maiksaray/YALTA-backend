@@ -4,8 +4,6 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import common.Serialization.{INSTANCE => Json}
 
-import scala.jdk.CollectionConverters._
-
 case class VariableValue(value: String, `type`: String)
 
 case class StartProcessRequest(variables: Map[String, VariableValue], businessKey: String)
@@ -31,6 +29,7 @@ class ProcessEndpoint @Inject()(config: Configuration) extends Endpoint(config) 
         "routeId" -> VariableValue(id.toString, "String")
       ),
       s"RouteId${id}")
+
     post(urlPart, Json.toJson(body)) match {
       case Success(body) =>
         val response = Json.fromJson(body, classOf[StartProcessResponse])

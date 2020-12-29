@@ -57,7 +57,7 @@ class RouteService @Inject()(routeDao: RouteDao,
   def updatePointState(routeId: Long, pointIndex: Int, userId: Long, state: Boolean): Future[Unit] =
     routeDao.updatePointState(routeId, pointIndex, state).flatMap {
       _ =>
-        getRouteState(routeId).map {
+        isRouteCompleted(routeId).map {
           case true =>
             if (camunda.enabled) {
               userService.get(userId).map {
@@ -85,7 +85,7 @@ class RouteService @Inject()(routeDao: RouteDao,
         }
     }
 
-  def getRouteState(routeId: Long): Future[Boolean] =
+  def isRouteCompleted(routeId: Long): Future[Boolean] =
     routeDao.getRouteState(routeId)
 
   def getCurrentRoute(userId: Long): Future[Option[common.Route]] =

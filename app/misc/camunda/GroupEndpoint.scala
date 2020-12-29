@@ -12,7 +12,7 @@ class GroupEndpoint @Inject()(config: Configuration) extends Endpoint(config) {
     common.Admin.INSTANCE -> config.get[String]("camunda.groups.admin")
   )
 
-  def addUserToGroup(user: common.User):CamundaResult = {
+  def addUserToGroup(user: common.User): CamundaResult = {
     val url = s"${groups(user.getRole)}/members/${user.getName}"
     put(url, "")
   }

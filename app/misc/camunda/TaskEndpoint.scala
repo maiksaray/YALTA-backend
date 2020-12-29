@@ -11,7 +11,7 @@ case class TaskVariables(variables: java.util.Map[String, VariableValue])
 
 case class GetTaskResponse(id: String, name: String, processInstanceId: String)
 
-case class GetTaskReqeust(processInstanceId: String)
+case class GetTaskRequest(processInstanceId: String)
 
 class TaskEndpoint @Inject()(config: Configuration) extends Endpoint(config) {
   override def resourceUrl: String = "task"
@@ -23,9 +23,8 @@ class TaskEndpoint @Inject()(config: Configuration) extends Endpoint(config) {
     post(s"$id/complete", resolveBody)(Credentials(user.getName, user.getPassword))
   }
 
-  def getCurrentTaskId(processId: String) = {
-//    val params = Map("processInstanceId" -> processId)
-    val params = GetTaskReqeust(processId)
+  def getCurrentTaskId(processId: String): CamundaResult = {
+    val params = GetTaskRequest(processId)
     post("", Json.toJson(params)) match {
       case Success(body) =>
         val token = TypeToken.getParameterized(classOf[java.util.List[GetTaskResponse]], classOf[GetTaskResponse]).getType

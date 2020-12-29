@@ -15,9 +15,9 @@ class CamundaService @Inject()(val config: Configuration,
 
   def enabled: Boolean = config.get[Boolean]("camunda.enabled")
 
-  var processes = mutable.Map[Long, String]()
+  private var processes = mutable.Map[Long, String]()
 
-  def startProcess(routeId: Long) = {
+  def startProcess(routeId: Long): CamundaResult = {
     process.startRouteProcess(routeId) match {
       case Success(result) =>
         processes.addOne((routeId, result))
@@ -39,13 +39,13 @@ class CamundaService @Inject()(val config: Configuration,
         }
       case None =>
         startProcess(routeId) match {
-          case Success(processId) => assignRoute(routeId, driver, admin)
+          case Success(_) => assignRoute(routeId, driver, admin)
           case Fail => Fail
         }
     }
   }
 
-  def completeRoute(routeId: Long, driver: common.User) = {
+  def completeRoute(routeId: Long, driver: common.User): CamundaResult = {
     processes.get(routeId) match {
       case Some(id) =>
         task.getCurrentTaskId(id) match {

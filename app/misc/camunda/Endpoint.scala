@@ -39,9 +39,16 @@ abstract class Endpoint(config: Configuration) extends Logging {
       case (acc, (k, v)) =>
         acc.concat(s"$k=$v")
     }
-    val s = if (urlPart.isEmpty) s"$baseUrl$paramString" else s"$baseUrl/$urlPart$paramString"
 
-    val url = uri"$s"
+    val nonEscapeUrl =
+      if (urlPart.isEmpty) {
+        s"$baseUrl$paramString"
+      }
+      else {
+        s"$baseUrl/$urlPart$paramString"
+      }
+
+    val url = uri"$nonEscapeUrl"
 
     val request = basicRequest
       .get(url)
