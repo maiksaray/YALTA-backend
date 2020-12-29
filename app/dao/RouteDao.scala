@@ -40,7 +40,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   //region point
 
   def createPoint(point: common.Point): Future[common.Point] =
-//    TODO: check name exists
+  //    TODO: check name exists
     routeRepo.createPoint(point).map(pointDbToModel)
 
   def getPoint(id: Long): Future[Option[common.Point]] =
@@ -127,9 +127,15 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   }
 
   def assignRoute(routeId: Long, driverId: Long): Future[Unit] =
-//    TODO: check that new driver doesn't have route for same date
+  //    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
       case 0 => Future.failed(new Exception("can't assign"))
       case _ => Future.successful(())
     }
+
+  def getRouteState(routeId: Long): Future[Boolean] =
+    routeRepo.getPointsState(routeId)
+      .map(_.forall(visited => visited))
+
+
 }
