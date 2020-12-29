@@ -134,7 +134,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     for {
       route <- tableQuery if route.driverId === userId && route.date === time
       routePoint <- routePoints if route.id === routePoint.routeId
-      point <- points if route.id === point.id
+      point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index,
       point.id, point.lat, point.lon, point.name)
@@ -188,7 +188,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     for {
       route <- tableQuery if route.driverId === userId
       routePoint <- routePoints if route.id === routePoint.routeId
-      point <- points if route.id === point.id
+      point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index,
       point.id, point.lat, point.lon, point.name)
