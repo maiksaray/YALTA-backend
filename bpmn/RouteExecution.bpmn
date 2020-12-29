@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1ep2n67" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.3.0">
+  <bpmn:process id="ExecuteRoute2" name="Execute Route 2" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Route created">
+      <bpmn:outgoing>Flow_06vu1kj</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_06vu1kj" sourceRef="StartEvent_1" targetRef="Activity_0podc73" />
+    <bpmn:sequenceFlow id="Flow_0u4isz3" sourceRef="Activity_0podc73" targetRef="Activity_0ev3m83" />
+    <bpmn:userTask id="Activity_0ev3m83" name="Complete Route" camunda:assignee="${driverId}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="driverId" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0u4isz3</bpmn:incoming>
+      <bpmn:outgoing>Flow_19zl1u9</bpmn:outgoing>
+      <bpmn:property id="Property_1tpr957" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0k3jnpg">
+        <bpmn:sourceRef>DataObjectReference_1l8riw6</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1tpr957</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0podc73" name="Assign driver" camunda:candidateGroups="yaltaadmin">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="driverId" />
+          <camunda:outputParameter name="driverId" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06vu1kj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0u4isz3</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1pcfxzd">
+        <bpmn:targetRef>DataObjectReference_1l8riw6</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_0rws7xz">
+      <bpmn:incoming>Flow_19zl1u9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_19zl1u9" sourceRef="Activity_0ev3m83" targetRef="Event_0rws7xz" />
+    <bpmn:dataObjectReference id="DataObjectReference_1l8riw6" dataObjectRef="DataObject_0rjdo4y" />
+    <bpmn:dataObject id="DataObject_0rjdo4y" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ExecuteRoute2">
+      <bpmndi:BPMNEdge id="Flow_06vu1kj_di" bpmnElement="Flow_06vu1kj">
+        <di:waypoint x="208" y="100" />
+        <di:waypoint x="260" y="100" />
+        <di:waypoint x="260" y="210" />
+        <di:waypoint x="310" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0u4isz3_di" bpmnElement="Flow_0u4isz3">
+        <di:waypoint x="410" y="210" />
+        <di:waypoint x="520" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19zl1u9_di" bpmnElement="Flow_19zl1u9">
+        <di:waypoint x="620" y="210" />
+        <di:waypoint x="732" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="172" y="82" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="156" y="125" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1yn1du3_di" bpmnElement="Activity_0ev3m83">
+        <dc:Bounds x="520" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13e7yql_di" bpmnElement="Activity_0podc73">
+        <dc:Bounds x="310" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0rws7xz_di" bpmnElement="Event_0rws7xz">
+        <dc:Bounds x="732" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_1l8riw6_di" bpmnElement="DataObjectReference_1l8riw6">
+        <dc:Bounds x="442" y="305" width="36" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0k3jnpg_di" bpmnElement="DataInputAssociation_0k3jnpg">
+        <di:waypoint x="478" y="310" />
+        <di:waypoint x="533" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1pcfxzd_di" bpmnElement="DataOutputAssociation_1pcfxzd">
+        <di:waypoint x="393" y="250" />
+        <di:waypoint x="442" y="310" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

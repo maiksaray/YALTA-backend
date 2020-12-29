@@ -81,14 +81,21 @@ class RouteController @Inject()(routeService: RouteService,
         case Some(bodyString) =>
           val assign = Json.fromJson(bodyString, classOf[common.AssignDriver])
           logger.info(s"trying to assign $routeId to ${assign.getDriverId}")
-          routeService.assignRoute(routeId, assign.getDriverId).map {
-            _ =>
-              logger.info(s"successfully assigned ${routeId} to ${assign.getDriverId}")
-              Ok("Assigned")
-          }.recover {
-            _ =>
-              logger.warn(s"Could not assign ${routeId} to ${assign.getDriverId}")
-              InternalServerError(Json.toJson(new ActionFailed("Can't assign")))
+          currentUser(request).flatMap {
+            case Some(admin) =>
+              routeService.assignRoute(routeId, assign.getDriverId, admin).map {
+                _ =>
+                  logger.info(s"successfully assigned ${routeId} to ${assign.getDriverId}")
+                  Ok("Assigned")
+              }.recover {
+                _ =>
+                  logger.warn(s"Could not assign ${routeId} to ${assign.getDriverId}")
+                  InternalServerError(Json.toJson(new ActionFailed("Can't assign")))
+              }
+            case None =>
+              logger.warn("Can't get admin identity for route assignment")
+              Future.successful(BadRequest(Json.toJson(
+                new BadRequest("Empty body not allowed"))))
           }
         case None =>
           logger.info("Empty route assignment request, returning 401")

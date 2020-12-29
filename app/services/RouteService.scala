@@ -6,13 +6,16 @@ import com.google.inject.{Inject, Singleton}
 import common.Route
 import dao.RouteDao
 import exceptions.YaltaBaseException
+import misc.camunda.Fail
 import org.joda.time.DateTime
 import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) extends Logging {
+class RouteService @Inject()(routeDao: RouteDao,
+                             userService: UserService,
+                             camunda: CamundaService)(implicit ec: ExecutionContext) extends Logging {
 
   def getPoints(): Future[List[common.Point]] =
     routeDao.getPoints().map {
@@ -52,10 +55,38 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
     }
 
   def updatePointState(routeId: Long, pointIndex: Int, userId: Long, state: Boolean): Future[Unit] =
-    routeDao.updatePointState(routeId, pointIndex, state)
+    routeDao.updatePointState(routeId, pointIndex, state).flatMap {
+      _ =>
+        isRouteCompleted(routeId).map {
+          case true =>
+            if (camunda.enabled) {
+              userService.get(userId).map {
+                case Some(user) =>
+                  camunda.completeRoute(routeId, user)
+                  ()
+                case None => ()
+              }
+            }
+          case _ => ()
+        }
+    }
 
-  def assignRoute(routeId: Long, driverId: Long): Future[Unit] =
-    routeDao.assignRoute(routeId, driverId)
+  def assignRoute(routeId: Long, driverId: Long, admin: common.User): Future[Unit] =
+    routeDao.assignRoute(routeId, driverId).flatMap {
+      _ =>
+        if (camunda.enabled) {
+          userService.get(driverId).map {
+            case Some(driver) =>
+              camunda.assignRoute(routeId, driver, admin)
+            case None => Fail
+          }.map(_ => ())
+        } else {
+          Future.successful(())
+        }
+    }
+
+  def isRouteCompleted(routeId: Long): Future[Boolean] =
+    routeDao.getRouteState(routeId)
 
   def getCurrentRoute(userId: Long): Future[Option[common.Route]] =
     routeDao.getCurrentRouteId(userId).flatMap {
@@ -68,6 +99,12 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
 
   def createRoute(driverId: Long, routeDate: DateTime, points: util.List[common.Point]): Future[Route] =
     routeDao.createRoute(driverId, routeDate, points)
+      .map(postprocessRoute)
 
-
+  private def postprocessRoute(route: Route): Route = {
+    if (camunda.enabled) {
+      camunda.startProcess(route.getId)
+    }
+    route
+  }
 }

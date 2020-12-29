@@ -11,6 +11,8 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
 
   def routeService(implicit app: Application): RouteService = Application.instanceCache[RouteService].apply(app)
 
+  def userService(implicit app: Application): UserService = Application.instanceCache[UserService].apply(app)
+
   "Route Service" must {
     "Create point" in {
       whenReady(routeService.createPoint(30.0, 30.0, "test point")) {
@@ -67,11 +69,14 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
     }
 
     "assign route" in {
-      whenReady(routeService.assignRoute(2, 2)) { _ =>
-        whenReady(routeService.getRoute(2)) {
-          route =>
-            assert(route.get.getDriverId == 2)
-        }
+      whenReady(userService.get(1)) {
+        admin =>
+          whenReady(routeService.assignRoute(2, 2, admin.get)) { _ =>
+            whenReady(routeService.getRoute(2)) {
+              route =>
+                assert(route.get.getDriverId == 2)
+            }
+          }
       }
     }
 

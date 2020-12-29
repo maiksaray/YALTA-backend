@@ -11,7 +11,15 @@ import misc.validator.UserExtentionValidator._
 import misc.validator.{Validated, ValidationFailed}
 
 @Singleton
-class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) extends Logging {
+class UserService @Inject()(userDao: UserDao, camundaService: CamundaService)(implicit ec: ExecutionContext) extends Logging {
+
+//  TODO:store data about camunda being enabled for user?
+  private def postprocess(user: common.User): common.User = {
+    if (camundaService.enabled) {
+      camundaService.user.syncCamundaUser(user)
+    }
+    user
+  }
 
   def get(id: Long): Future[Option[User]] = userDao.getUser(id)
 
@@ -19,7 +27,7 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
 
   def createUser(user: common.User): Future[common.User] = {
     user.validation match {
-      case Validated => userDao.create(user)
+      case Validated => userDao.create(user).map(postprocess)
       case ValidationFailed(reason) => throw new InvalidDataException(reason)
     }
   }
@@ -41,6 +49,6 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
   }
 
   def changePass(name: String, newPass: String): Future[User] = {
-    update(name, u => new common.User(u.getId, u.getName, newPass, u.getRole))
+    update(name, u => new common.User(u.getId, u.getName, newPass, u.getRole)).map(postprocess)
   }
 }

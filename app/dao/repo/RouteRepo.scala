@@ -183,4 +183,9 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       }
     }
   }
+
+  def getPointsState(routeId: Long): Future[Seq[Boolean]] = db.run {
+    routePoints.filter(_.routeId === routeId).map(_.visited).result
+  }
+
 }
