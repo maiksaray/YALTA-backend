@@ -129,8 +129,8 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
     routeRepo.getRouteIdFor(userId, DateTime.now())
   }
 
-  def getRoutes(id: Long): Future[util.List[common.Route]] = {
-    routeRepo.getRoutesFor(id)
+  def getRoutes(id: Long, from: DateTime, to: DateTime): Future[util.List[common.Route]] = {
+    routeRepo.getRoutes(id, from, to)
       .map {
         seq =>
           seq.groupBy(_._1.id).values.map {

@@ -4,6 +4,7 @@ import common.Serialization.{INSTANCE => Json}
 import common._
 import dao.SessionDao
 import javax.inject.Inject
+import org.joda.time.DateTime
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Request}
 import security.UserAction
 import services.RouteService
@@ -163,12 +164,12 @@ class RouteController @Inject()(routeService: RouteService,
     }
   })
 
-  def getRoutes() = securedAsync(Driver.INSTANCE :: Nil, Action.async {
+  def getRoutes(from: DateTime, to: DateTime) = securedAsync(Driver.INSTANCE :: Nil, Action.async {
     request: Request[AnyContent] => {
       currentUser(request).flatMap {
         case Some(user) =>
           logger.info(s"returning routes for user ${user.getId}")
-          routeService.getRoutes(user.getId).map {
+          routeService.getRoutes(user.getId, from, to).map {
             routes =>
               logger.info("returning all routes")
               Ok(Json.toJson(routes))

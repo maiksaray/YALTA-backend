@@ -92,7 +92,7 @@ class RouteServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSuite 
     }
 
     "return all routes" in {
-      whenReady(routeService.getRoutes(2)) {
+      whenReady(routeService.getRoutes(2, DateTime.now().minusDays(3), DateTime.now())) {
         routes =>
           assert(routes.size() == 2)
           assert(routes.get(0).getDriverId == 2)

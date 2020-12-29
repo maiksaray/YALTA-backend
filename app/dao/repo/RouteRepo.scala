@@ -5,6 +5,7 @@ import java.sql.Date
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
@@ -184,17 +185,17 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     }
   }
 
-  private def userRoutesQuery(userId: Long) =
+  private def userRoutesQuery(userId: Long, from: Date, to: Date) =
     for {
-      route <- tableQuery if route.driverId === userId
+      route <- tableQuery if route.driverId === userId && route.date >= from && route.date <= to
       routePoint <- routePoints if route.id === routePoint.routeId
       point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index,
       point.id, point.lat, point.lon, point.name)
 
-  def getRoutesFor(userId: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
-    userRoutesQuery(userId).result.map {
+  def getRoutes(userId: Long, from: Date, to: Date): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
+    userRoutesQuery(userId, from, to).result.map {
       _.map {
         case (rid, driverId, date,
         rpid, visited, index,
