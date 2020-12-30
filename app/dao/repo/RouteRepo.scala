@@ -5,6 +5,7 @@ import java.sql.Date
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
+import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
@@ -134,7 +135,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     for {
       route <- tableQuery if route.driverId === userId && route.date === time
       routePoint <- routePoints if route.id === routePoint.routeId
-      point <- points if route.id === point.id
+      point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index,
       point.id, point.lat, point.lon, point.name)
@@ -173,6 +174,28 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
   def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     //    TODO: make custom mapping instead of this shiet with tuples
     getRouteWithPointsQuery(id).result.map {
+      _.map {
+        case (rid, driverId, date,
+        rpid, visited, index,
+        pid, lat, lon, name) =>
+          (Route(Some(rid), Some(driverId), date),
+            RoutePoint(Some(rpid), 0, 0, visited, index),
+            Point(Some(pid), lat, lon, name))
+      }
+    }
+  }
+
+  private def userRoutesQuery(userId: Long, from: Date, to: Date) =
+    for {
+      route <- tableQuery if route.driverId === userId && route.date >= from && route.date <= to
+      routePoint <- routePoints if route.id === routePoint.routeId
+      point <- points if routePoint.pointId === point.id
+    } yield (route.id, route.driverId, route.date,
+      routePoint.id, routePoint.visited, routePoint.index,
+      point.id, point.lat, point.lon, point.name)
+
+  def getRoutes(userId: Long, from: Date, to: Date): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
+    userRoutesQuery(userId, from, to).result.map {
       _.map {
         case (rid, driverId, date,
         rpid, visited, index,
