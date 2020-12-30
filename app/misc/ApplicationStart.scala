@@ -1,6 +1,6 @@
 package misc
 
-import dao.{LocationDao, RouteDao, UserDao}
+import dao.{InMemSessionDao, LocationDao, RouteDao, SessionDao, UserDao}
 import common.{Admin, Driver}
 
 import scala.concurrent.{Await, Future}
@@ -40,4 +40,9 @@ import com.google.inject.AbstractModule
 class OnStartupModule extends AbstractModule {
   override def configure(): Unit =
     bind(classOf[ApplicationStart]).asEagerSingleton()
+}
+
+class SessionModule extends AbstractModule {
+  override def configure(): Unit =
+    bind(classOf[SessionDao]).to(classOf[InMemSessionDao])
 }

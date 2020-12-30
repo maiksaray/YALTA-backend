@@ -17,14 +17,16 @@ class UserAction @Inject()(val parser: BodyParsers.Default,
     with ActionTransformer[Request, UserRequest] {
 
 
-  private def extractUser(req: RequestHeader): Future[Option[User]] =
-    req.session.get("sessionToken")
-      .flatMap(sessionDao.getSession)
-      .filter(_.expiration.isAfter(LocalDateTime.now()))
-      .map(_.username) match {
+  private def extractUser(req: RequestHeader): Future[Option[User]] = {
+    req.session.get("sessionToken") match {
+      case Some(token) => sessionDao.getSession(token).flatMap {
+        case Some(session) if session.expiration.isAfter(LocalDateTime.now()) =>
+          userDao.getUser(session.username)
+        case None => Future.successful(None)
+      }
       case None => Future.successful(None)
-      case Some(value) => userDao.getUser(value)
     }
+  }
 
   def transform[A](request: Request[A]): Future[UserRequest[A]] =
     Future.successful(
