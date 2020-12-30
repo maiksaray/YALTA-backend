@@ -2,14 +2,12 @@ package controllers
 
 import common.Role
 import common.Serialization.{INSTANCE => Json}
-import exceptions.YaltaBaseException
 import javax.inject.Inject
 import play.api.Logging
 import play.api.mvc._
 import security.{UserAction, UserRequest}
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 class SecuredController @Inject()(cc: ControllerComponents,
                                   val userAction: UserAction
@@ -31,22 +29,19 @@ class SecuredController @Inject()(cc: ControllerComponents,
                                actionParam: Action[AnyContent]): Action[AnyContent] =
     userAction.async(actionParam.parser) {
       userRequest: UserRequest[AnyContent] =>
+        userRequest.user.flatMap { user =>
+          user.map(_.getRole) match {
+            case None =>
+              logger.warn("Returning 401 for request with no session provided")
+              Future(Unauthorized(unauthorizedError))
+            case Some(role) => if (roles.contains(role)) {
 
-        val user = Await.result(userRequest.user, Duration.Inf)
-        val role = user match {
-          case None => None
-          case Some(value) => value.getRole
-        }
-        //        Todo: propagate this in a more elegant way
-        role match {
-          case None =>
-            logger.warn("Returning 401 for request with no session provided")
-            Future(Unauthorized(unauthorizedError))
-          case _ => if (roles.contains(role)) {
-            actionParam(userRequest)
-          } else {
-            logger.warn(s"User with role $role tried to request resource with permissions: $roles ${userRequest.path}")
-            Future(Unauthorized(unauthorizedError))
+              actionParam(userRequest)
+
+            } else {
+              logger.warn(s"User with role $role tried to request resource with permissions: $roles ${userRequest.path}")
+              Future(Unauthorized(unauthorizedError))
+            }
           }
         }
     }

@@ -13,6 +13,14 @@ import misc.validator.{Validated, ValidationFailed}
 @Singleton
 class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) extends Logging {
 
+  private def update(name: String, change: common.User => common.User): Future[User] =
+    userDao.getUser(name).map {
+      case None => throw new YaltaBaseException(s"User $name does not exist, can't update")
+      case Some(user) => user
+    }.flatMap {
+      user => userDao.update(change(user))
+    }
+
   def get(id: Long): Future[Option[User]] = userDao.getUser(id)
 
   def get(name: String): Future[Option[User]] = userDao.getUser(name)
@@ -25,14 +33,6 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
 
   def createUser(name: String, pass: String, role: common.Role): Future[common.User] =
     createUser(new common.User(null, name, pass, role))
-
-  def update(name: String, change: common.User => common.User): Future[User] =
-    userDao.getUser(name).map {
-      case None => throw new YaltaBaseException(s"User $name does not exist, can't update")
-      case Some(user) => user
-    }.flatMap {
-      user => userDao.update(change(user))
-    }
 
   def changeRole(name: String, newRole: common.Role): Future[common.User] =
     update(name, u => new common.User(u.getId, u.getName, u.getPassword, newRole))

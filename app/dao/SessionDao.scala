@@ -12,13 +12,13 @@ import scala.collection.mutable
 
 
 @Singleton
-class SessionDao extends Logging{
+class SessionDao extends Logging {
 
   private val sessions = mutable.Map.empty[String, Session]
 
   def getSession(token: String): Option[Session] = sessions.get(token)
 
-  def generateToken(user:common.User):String = generateToken(user.name)
+  def generateToken(user: common.User): String = generateToken(user.name)
 
   def generateToken(username: String): String = {
     val token = s"$username-token-${UUID.randomUUID().toString}"

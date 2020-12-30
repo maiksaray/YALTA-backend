@@ -33,5 +33,5 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
     repo.getRange(userId, from, to).map { seq =>
       seq.map(locationDbToModel)
     }
-  }
+
 }

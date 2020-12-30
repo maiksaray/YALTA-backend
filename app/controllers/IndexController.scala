@@ -89,18 +89,18 @@ class IndexController @Inject()(userDao: UserDao,
 
   def logout(): Action[AnyContent] = Action {
     implicit request => {
-      val maybeToken = request.session
+      request.session
         .get(sessionTokenName)
-      maybeToken match {
-        case None => Unauthorized(unauthorizedError)
-        case Some(token) =>
-          val maybeDeleted = sessionDao.deleteSession(token)
-          maybeDeleted match {
+        .map { token =>
+          sessionDao.deleteSession(token) match {
             case None => BadRequest(Json.toJson(
               new BadRequest("Can not terminate absent session")))
             case Some(_) => Ok("Successfully logged out")
           }
-      }
+        }
+    } match {
+      case Some(res) => res
+      case None => Unauthorized(unauthorizedError)
     }
   }
 
