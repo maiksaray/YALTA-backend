@@ -25,24 +25,26 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
       _ <- routeRepo.createTable()
       _ <- routeRepo.createPointsTable()
       _ <- routeRepo.createRoutePointsTable()
-    } yield CompletionMarker())
-      .flatMap { _ =>
-        routeRepo.getPoint(1).flatMap {
-          case None =>
-            for {
-              p1 <- createPoint(mapping.Point(None, 10.0, 10.0, "first"))
-              p2 <- createPoint(mapping.Point(None, 20.0, 20.0, "second"))
-              _ <- createRoute(2L, DateTime.now(), List(p1, p2).asJava)
-            } yield CompletionMarker()
-          case _ => Future.successful(CompletionMarker())
-        }
+    } yield Future.successful(())).flatMap { _ =>
+      routeRepo.getPoint(1).flatMap {
+        case None =>
+          for {
+            p1 <- createPoint(mapping.Point(None, 59.7265, 30.4176, "first"))
+            p2 <- createPoint(mapping.Point(None, 59.7230, 30.4292, "second"))
+            _ <- createRoute(2L, DateTime.now().minusDays(3), List(p2, p1).asJava)
+            _ <- updatePointState(1, 0, true)
+            _ <- updatePointState(1, 1, true)
+            _ <- createRoute(2L, DateTime.now(), List(p1, p2).asJava)
+          } yield CompletionMarker()
+        case _ => Future.successful(CompletionMarker())
       }
+    }
 
 
   //region point
 
   def createPoint(point: common.Point): Future[common.Point] =
-  //    TODO: check name exists
+//    TODO: check name exists
     routeRepo.createPoint(point).map(pointDbToModel)
 
   def getPoint(id: Long): Future[Option[common.Point]] =
@@ -126,8 +128,19 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   def getCurrentRouteId(userId: Long): Future[Option[Long]] =
     routeRepo.getRouteIdFor(userId, DateTime.now())
 
+  def getRoutes(id: Long, from: DateTime, to: DateTime): Future[util.List[common.Route]] = {
+    routeRepo.getRoutes(id, from, to)
+      .map {
+        seq =>
+          seq.groupBy(_._1.id).values.map {
+            rows =>
+              composeRoute(rows).get
+          }.toList.sortBy(_.getRouteDate).reverse.asJava
+      }
+  }
+
   def assignRoute(routeId: Long, driverId: Long): Future[CompletionMarker] =
-  //    TODO: check that new driver doesn't have route for same date
+//    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
       case 0 => Future.failed(new Exception("can't assign"))
       case _ => Future.successful(CompletionMarker())

@@ -31,6 +31,7 @@ PUT     /points/:id/name            controllers.PointController.changeName(id:Lo
 PUT     /points/:id/location        controllers.PointController.changeLocation(id:Long)
 
 POST    /routes/                    controllers.RouteController.createRoute
+GET     /routes/                    controllers.RouteController.getRoutes(from:org.joda.time.DateTime, to:org.joda.time.DateTime)
 GET     /routes/current             controllers.RouteController.getCurrentRoute
 GET     /routes/:id                 controllers.RouteController.getRoute(id:Long)
 PUT     /routes/:id/driver          controllers.RouteController.assignRoute(id:Long)
