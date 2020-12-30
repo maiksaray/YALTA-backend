@@ -160,7 +160,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       .result.headOption
   }
 
-  private def getRouteWithPointsQuery(id: Long) = {
+  private def getRouteWithPointsQuery(id: Long) =
     for {
       route <- tableQuery if route.id === id
       routePoint <- routePoints if route.id === routePoint.routeId
@@ -168,7 +168,6 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index,
       point.id, point.lat, point.lon, point.name)
-  }
 
   def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     //    TODO: make custom mapping instead of this shiet with tuples

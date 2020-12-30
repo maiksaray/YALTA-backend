@@ -38,7 +38,6 @@ class ApplicationStart @Inject()(userDao: UserDao,
 import com.google.inject.AbstractModule
 
 class OnStartupModule extends AbstractModule {
-  override def configure(): Unit = {
+  override def configure(): Unit =
     bind(classOf[ApplicationStart]).asEagerSingleton()
-  }
 }

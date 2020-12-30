@@ -2,6 +2,7 @@ package controllers
 
 import common.Role
 import common.Serialization.{INSTANCE => Json}
+import exceptions.YaltaBaseException
 import javax.inject.Inject
 import play.api.Logging
 import play.api.mvc._
@@ -18,9 +19,13 @@ class SecuredController @Inject()(cc: ControllerComponents,
   val unauthorizedError: String = Json.toJson(
     new common.Unauthorized("Insufficient rights to access requested resource"))
 
-  def currentUser(request: Request[AnyContent]): Future[Option[common.User]] = {
-    request.asInstanceOf[UserRequest[AnyContent]].user
-  }
+  def currentUser(request: Request[AnyContent]): Future[Option[common.User]] =
+    request match {
+      case userRequest: UserRequest[AnyContent] => userRequest.user
+      case _ =>
+        logger.error(s"Invalid request type detected in controller: ${request.getClass}")
+        Future.successful(None)
+    }
 
   def securedAsync[AnyContent](roles: Seq[Role],
                                actionParam: Action[AnyContent]): Action[AnyContent] =
