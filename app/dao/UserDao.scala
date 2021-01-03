@@ -21,8 +21,8 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
           for {
             _ <- create("admin", "admin", common.Admin.INSTANCE)
             _ <- create("driver", "driver", common.Driver.INSTANCE)
-          } yield CompletionMarker()
-        case _ => Future.successful(CompletionMarker())
+          } yield CompletionMarker
+        case _ => Future.successful(CompletionMarker)
       }
     }
 

@@ -8,5 +8,5 @@ import misc.CompletionMarker
 
 class BaseDao[T <: Entity[T, ID], ID, RT <: CommonRepo[T, ID]](repo: RT)(implicit ec: ExecutionContext) {
   def ensureExists(): Future[CompletionMarker] =
-    repo.createTable().map(_=>CompletionMarker())
+    repo.createTable().map(_ => CompletionMarker)
 }

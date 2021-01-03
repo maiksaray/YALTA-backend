@@ -1,3 +1,5 @@
 package misc
 
-case class CompletionMarker()
+trait CompletionMarker
+
+case object CompletionMarker extends CompletionMarker

@@ -35,8 +35,8 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
             _ <- updatePointState(1, 0, true)
             _ <- updatePointState(1, 1, true)
             _ <- createRoute(2L, DateTime.now(), List(p1, p2).asJava)
-          } yield CompletionMarker()
-        case _ => Future.successful(CompletionMarker())
+          } yield CompletionMarker
+        case _ => Future.successful(CompletionMarker)
       }
     }
 
@@ -44,7 +44,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   //region point
 
   def createPoint(point: common.Point): Future[common.Point] =
-//    TODO: check name exists
+  //    TODO: check name exists
     routeRepo.createPoint(point).map(pointDbToModel)
 
   def getPoint(id: Long): Future[Option[common.Point]] =
@@ -81,7 +81,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   def updatePointState(routeId: Long, pointIndex: Int, state: Boolean): Future[CompletionMarker] =
     routeRepo.updatePointState(routeId, pointIndex, state).flatMap {
       case 0 => Future.failed(new Exception("Can't update"))
-      case _ => Future.successful(CompletionMarker())
+      case _ => Future.successful(CompletionMarker)
     }
 
   //endregion
@@ -130,19 +130,17 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def getRoutes(id: Long, from: DateTime, to: DateTime): Future[util.List[common.Route]] = {
     routeRepo.getRoutes(id, from, to)
-      .map {
-        seq =>
-          seq.groupBy(_._1.id).values.map {
-            rows =>
-              composeRoute(rows).get
-          }.toList.sortBy(_.getRouteDate).reverse.asJava
+      .map { seq =>
+        seq.groupBy(_._1.id).values.map { rows =>
+          composeRoute(rows).get
+        }.toList.sortBy(_.getRouteDate).reverse.asJava
       }
   }
 
   def assignRoute(routeId: Long, driverId: Long): Future[CompletionMarker] =
-//    TODO: check that new driver doesn't have route for same date
+  //    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
       case 0 => Future.failed(new Exception("can't assign"))
-      case _ => Future.successful(CompletionMarker())
+      case _ => Future.successful(CompletionMarker)
     }
 }
