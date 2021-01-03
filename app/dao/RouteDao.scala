@@ -43,7 +43,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   //region point
 
   def createPoint(point: common.Point): Future[common.Point] =
-//    TODO: check name exists
+  //    TODO: check name exists
     routeRepo.createPoint(point).map(pointDbToModel)
 
   def getPoint(id: Long): Future[Option[common.Point]] =
@@ -68,7 +68,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def createRoutePoints(points: util.List[common.Point], routeId: Long): Future[util.List[common.RoutePoint]] = {
     val rps = points.asScala.zipWithIndex.map {
-      case (point, index) => RoutePoint(None, routeId, point.getId, visited = false, index)
+      case (point, index) => RoutePoint(None, routeId, point.getId, visited = false, index, DateTime.now())
     }
     routeRepo.createRoutePointsWithId(rps).map { seq =>
       seq.map {
@@ -78,7 +78,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   }
 
   def updatePointState(routeId: Long, pointIndex: Int, state: Boolean): Future[Unit] =
-    routeRepo.updatePointState(routeId, pointIndex, state).flatMap {
+    routeRepo.updatePointState(routeId, pointIndex, state, DateTime.now()).flatMap {
       case 0 => Future.failed(new Exception("Can't update"))
       case _ => Future.successful(())
     }
@@ -140,8 +140,19 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
       }
   }
 
+  def getRoutes(from: DateTime, to: DateTime): Future[List[common.Route]] = {
+    routeRepo.getRoutes(from, to)
+      .map {
+        seq =>
+          seq.groupBy(_._1.id).values.map {
+            rows =>
+              composeRoute(rows).get
+          }.toList.sortBy(_.getRouteDate).reverse
+      }
+  }
+
   def assignRoute(routeId: Long, driverId: Long): Future[Unit] =
-//    TODO: check that new driver doesn't have route for same date
+  //    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
       case 0 => Future.failed(new Exception("can't assign"))
       case _ => Future.successful(())
