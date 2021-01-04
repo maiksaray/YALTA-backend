@@ -72,7 +72,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
     }
     routeRepo.createRoutePointsWithId(rps).map { seq =>
       seq.map {
-        rp => new common.RoutePoint(rp.id, points.get(rp.index), rp.visited, rp.index)
+        rp => new common.RoutePoint(rp.id, points.get(rp.index), rp.visited, rp.index, rp.updated)
       }.asJava
     }
   }
@@ -113,7 +113,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
             val pointData = data._3
             val rpData = data._2
             val point = new common.Point(pointData.id, pointData.lat, pointData.lon, pointData.name)
-            list += new common.RoutePoint(rpData.id, point, rpData.visited, rpData.index)
+            list += new common.RoutePoint(rpData.id, point, rpData.visited, rpData.index, rpData.updated)
         }
         val finished = points.forall(_.getVisited)
         Some(new common.Route(routePart.id, routePart.driverID, routePart.date, points.asJava, finished))
