@@ -37,6 +37,9 @@ GET     /routes/:id                 controllers.RouteController.getRoute(id:Long
 PUT     /routes/:id/driver          controllers.RouteController.assignRoute(id:Long)
 PUT     /routes/:id/points/:index   controllers.RouteController.updatePointState(id:Long, index:Int)
 
+GET     /reports/day                controllers.ReportController.getDayReport(date:org.joda.time.DateTime)
+GET     /reports/today              controllers.ReportController.getTodayReport
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 

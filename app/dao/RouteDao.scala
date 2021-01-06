@@ -137,6 +137,14 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
       }
   }
 
+  def getRoutes(from: DateTime, to: DateTime): Future[List[common.Route]] =
+    routeRepo.getRoutes(from, to)
+      .map { seq =>
+        seq.groupBy(_._1.id).values.map { rows =>
+          composeRoute(rows).get
+        }.toList.sortBy(_.getRouteDate).reverse
+      }
+
   def assignRoute(routeId: Long, driverId: Long): Future[CompletionMarker] =
   //    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
