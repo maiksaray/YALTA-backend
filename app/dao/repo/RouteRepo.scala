@@ -1,11 +1,11 @@
 package dao.repo
 
 import java.sql.Date
+import java.time.Instant
 
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
-import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
@@ -44,7 +44,9 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
 
     def index = column[Int]("index")
 
-    override def * = (id.?, routeId, pointId, visited, index) <> ((RoutePoint.apply _).tupled, RoutePoint.unapply)
+    def updated = column[Instant]("updated", O.SqlType("timestamp"))
+
+    override def * = (id.?, routeId, pointId, visited, index, updated) <> ((RoutePoint.apply _).tupled, RoutePoint.unapply)
   }
 
   class Points(tag: Tag) extends Table[Point](tag, "points") with Keyed[Long] {
@@ -116,10 +118,10 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
   }
 
   def pointStateUpdateQuery(routeId: Long, index: Int) =
-    for {rp <- routePoints if rp.routeId === routeId && rp.index === index} yield (rp.visited)
+    for {rp <- routePoints if rp.routeId === routeId && rp.index === index} yield (rp.visited, rp.updated)
 
-  def updatePointState(routeId: Long, pointIndex: Int, state: Boolean) = db.run {
-    pointStateUpdateQuery(routeId, pointIndex).update(state)
+  def updatePointState(routeId: Long, pointIndex: Int, state: Boolean, timestamp: Instant) = db.run {
+    pointStateUpdateQuery(routeId, pointIndex).update(state, timestamp)
   }
 
   //endregion
@@ -137,17 +139,17 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       routePoint <- routePoints if route.id === routePoint.routeId
       point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
-      routePoint.id, routePoint.visited, routePoint.index,
+      routePoint.id, routePoint.visited, routePoint.index, routePoint.updated,
       point.id, point.lat, point.lon, point.name)
 
   def getRouteFor(userId: Long, time: Date): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     userDateRouteQuery(userId, time).result.map {
       _.map {
         case (rid, driverId, date,
-        rpid, visited, index,
+        rpid, visited, index, updated,
         pid, lat, lon, name) =>
           (Route(Some(rid), Some(driverId), date),
-            RoutePoint(Some(rpid), 0, 0, visited, index),
+            RoutePoint(Some(rpid), 0, 0, visited, index, updated),
             Point(Some(pid), lat, lon, name))
       }
     }
@@ -167,7 +169,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       routePoint <- routePoints if route.id === routePoint.routeId
       point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
-      routePoint.id, routePoint.visited, routePoint.index,
+      routePoint.id, routePoint.visited, routePoint.index, routePoint.updated,
       point.id, point.lat, point.lon, point.name)
 
   def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
@@ -175,10 +177,10 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     getRouteWithPointsQuery(id).result.map {
       _.map {
         case (rid, driverId, date,
-        rpid, visited, index,
+        rpid, visited, index, updated,
         pid, lat, lon, name) =>
           (Route(Some(rid), Some(driverId), date),
-            RoutePoint(Some(rpid), 0, 0, visited, index),
+            RoutePoint(Some(rpid), 0, 0, visited, index, updated),
             Point(Some(pid), lat, lon, name))
       }
     }
@@ -190,17 +192,17 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       routePoint <- routePoints if route.id === routePoint.routeId
       point <- points if routePoint.pointId === point.id
     } yield (route.id, route.driverId, route.date,
-      routePoint.id, routePoint.visited, routePoint.index,
+      routePoint.id, routePoint.visited, routePoint.index, routePoint.updated,
       point.id, point.lat, point.lon, point.name)
 
   def getRoutes(userId: Long, from: Date, to: Date): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     userRoutesQuery(userId, from, to).result.map {
       _.map {
         case (rid, driverId, date,
-        rpid, visited, index,
+        rpid, visited, index, updated,
         pid, lat, lon, name) =>
           (Route(Some(rid), Some(driverId), date),
-            RoutePoint(Some(rpid), 0, 0, visited, index),
+            RoutePoint(Some(rpid), 0, 0, visited, index, updated),
             Point(Some(pid), lat, lon, name))
       }
     }

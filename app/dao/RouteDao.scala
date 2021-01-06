@@ -69,17 +69,17 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def createRoutePoints(points: util.List[common.Point], routeId: Long): Future[util.List[common.RoutePoint]] = {
     val rps = points.asScala.zipWithIndex.map {
-      case (point, index) => RoutePoint(None, routeId, point.getId, visited = false, index)
+      case (point, index) => RoutePoint(None, routeId, point.getId, visited = false, index, DateTime.now())
     }
     routeRepo.createRoutePointsWithId(rps).map { seq =>
       seq.map {
-        rp => new common.RoutePoint(rp.id, points.get(rp.index), rp.visited, rp.index)
+        rp => new common.RoutePoint(rp.id, points.get(rp.index), rp.visited, rp.index, rp.updated)
       }.asJava
     }
   }
 
   def updatePointState(routeId: Long, pointIndex: Int, state: Boolean): Future[CompletionMarker] =
-    routeRepo.updatePointState(routeId, pointIndex, state).flatMap {
+    routeRepo.updatePointState(routeId, pointIndex, state, DateTime.now()).flatMap {
       case 0 => Future.failed(new Exception("Can't update"))
       case _ => Future.successful(CompletionMarker)
     }
@@ -114,7 +114,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
             val pointData = data._3
             val rpData = data._2
             val point = new common.Point(pointData.id, pointData.lat, pointData.lon, pointData.name)
-            list += new common.RoutePoint(rpData.id, point, rpData.visited, rpData.index)
+            list += new common.RoutePoint(rpData.id, point, rpData.visited, rpData.index, rpData.updated)
         }
         val finished = points.forall(_.getVisited)
         Some(new common.Route(routePart.id, routePart.driverID, routePart.date, points.asJava, finished))
