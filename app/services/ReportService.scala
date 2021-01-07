@@ -172,4 +172,8 @@ class ReportService @Inject()(val userService: UserService,
       )
     }
   }
+
+  private def getMapPic(date:DateTime) ={
+
+  }
 }
