@@ -2,7 +2,7 @@ package misc.validator
 
 import scala.language.implicitConversions
 
-case class NameValidationFailed(override val reason: String) extends ValidationFailed(reason)
+case class NameValidationFailed(reason: String) extends ValidationFailed(reason)
 
 object UserExtentionValidator {
 

@@ -14,8 +14,6 @@ object DateTimeTransform {
 
   implicit def instantToDateTime(instant: Instant): DateTime =
     new DateTime(instant.toEpochMilli)
-      .withZone(DateTimeZone.UTC)
-      .withZoneRetainFields(DateTimeZone.getDefault)
 
   implicit def dateTimeToDate(dateTime: DateTime): Date = new java.sql.Date(dateTime.getMillis)
 

@@ -19,7 +19,7 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
 
   def create(lat: Double, lon: Double, userId: Long): Future[common.Location] = {
     logger.info(s"Adding point $lat:$lon for user id $userId")
-    create(Location(None, lat, lon, userId, Instant.now()))
+    create(Location(None, lat, lon, userId, DateTime.now()))
   }
 
   def create(location: common.Location): Future[common.Location] =

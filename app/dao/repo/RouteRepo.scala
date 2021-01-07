@@ -44,7 +44,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
 
     def index = column[Int]("index")
 
-    def updated = column[Instant]("updated", O.SqlType("timestamp"))
+    def updated = column[Instant]("updated", O.SqlType("timestamp default now()"))
 
     override def * = (id.?, routeId, pointId, visited, index, updated) <> ((RoutePoint.apply _).tupled, RoutePoint.unapply)
   }
