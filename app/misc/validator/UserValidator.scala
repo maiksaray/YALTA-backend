@@ -2,13 +2,15 @@ package misc.validator
 
 import scala.language.implicitConversions
 
+case class NameValidationFailed(override val reason: String) extends ValidationFailed(reason)
+
 object UserExtentionValidator {
 
   implicit def NameValidator(name: String) = new {
     def validation: ValidationResult =
       name match {
-        case name if name.isEmpty => ValidationFailed("name can't be empty")
-        case name if name.charAt(0).isDigit => ValidationFailed("name can't start with number")
+        case name if name.isEmpty => NameValidationFailed("name can't be empty")
+        case name if name.charAt(0).isDigit => NameValidationFailed("name can't start with number")
         case _ => Validated
       }
   }

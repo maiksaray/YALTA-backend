@@ -1,15 +1,14 @@
 package controllers
 
-import common.{Admin, Driver}
+import common.Admin
 import dao.SessionDao
 import javax.inject.Inject
-import misc.reports.{DayReport, PointData, RouteData}
 import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request}
 import security.UserAction
 import services.{ReportService, RouteService}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ReportController @Inject()(routeService: RouteService,
                                  sessionDao: SessionDao,

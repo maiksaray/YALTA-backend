@@ -3,19 +3,19 @@ package services
 import com.google.inject.{Inject, Singleton}
 import common.User
 import dao.UserDao
-import exceptions.{InvalidDataException, YaltaBaseException}
+import misc.validator.UserExtentionValidator._
+import misc.validator.{NameValidationFailed, Validated}
+import misc.{InvalidUsernameException, NotExistException, UnknownYaltaException}
 import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
-import misc.validator.UserExtentionValidator._
-import misc.validator.{Validated, ValidationFailed}
 
 @Singleton
 class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) extends Logging {
 
   private def update(name: String, change: common.User => common.User): Future[User] =
     userDao.getUser(name).map {
-      case None => throw new YaltaBaseException(s"User $name does not exist, can't update")
+      case None => throw new NotExistException(s"User $name does not exist, can't update")
       case Some(user) => user
     }.flatMap {
       user => userDao.update(change(user))
@@ -28,7 +28,8 @@ class UserService @Inject()(userDao: UserDao)(implicit ec: ExecutionContext) ext
   def createUser(user: common.User): Future[common.User] =
     user.validation match {
       case Validated => userDao.create(user)
-      case ValidationFailed(reason) => throw new InvalidDataException(reason)
+      case NameValidationFailed(reason) => throw new InvalidUsernameException(reason)
+      case _ => throw new UnknownYaltaException("User can't be properly validated")
     }
 
   def createUser(name: String, pass: String, role: common.Role): Future[common.User] =

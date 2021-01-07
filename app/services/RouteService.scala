@@ -5,8 +5,7 @@ import java.util
 import com.google.inject.{Inject, Singleton}
 import common.Route
 import dao.RouteDao
-import exceptions.YaltaBaseException
-import misc.CompletionMarker
+import misc.{CompletionMarker, NotExistException, UpdateException}
 import org.joda.time.DateTime
 import play.api.Logging
 
@@ -17,7 +16,7 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
 
   private def updatePoint(id: Long, change: common.Point => common.Point): Future[common.Point] =
     routeDao.getPoint(id).map {
-      case None => throw new YaltaBaseException(s"Point with $id does not exist, can't update")
+      case None => throw new NotExistException(s"Point with $id does not exist, can't update")
       case Some(point) => point
     }.flatMap {
       point => routeDao.updatePoint(change(point))
@@ -44,7 +43,7 @@ class RouteService @Inject()(routeDao: RouteDao)(implicit ec: ExecutionContext) 
   def updateCurrentPointState(pointIndex: Int, userId: Long, state: Boolean): Future[CompletionMarker] =
     routeDao.getCurrentRouteId(userId).flatMap {
       case Some(id) => routeDao.updatePointState(id, pointIndex, state)
-      case None => Future.failed(new Exception(""))
+      case None => Future.failed(new UpdateException("Can't update point state for some reason"))
     }
 
   def updatePointState(routeId: Long, pointIndex: Int, userId: Long, state: Boolean): Future[CompletionMarker] =

@@ -8,7 +8,7 @@ import dao.implicits.RouteTransform._
 import dao.mapping.RoutePoint
 import dao.repo.RouteRepo
 import javax.inject.{Inject, Singleton}
-import misc.CompletionMarker
+import misc.{CompletionMarker, DuplicateRouteException, UpdateException}
 import org.joda.time.DateTime
 import play.api.Logging
 
@@ -59,7 +59,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def updatePoint(point: common.Point): Future[common.Point] =
     routeRepo.updatePoint(point).flatMap {
-      case 0 => Future.failed(new Exception("can't update point"))
+      case 0 => Future.failed(new UpdateException("can't update point"))
       case _ => Future.successful(point)
     }
 
@@ -80,7 +80,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
 
   def updatePointState(routeId: Long, pointIndex: Int, state: Boolean): Future[CompletionMarker] =
     routeRepo.updatePointState(routeId, pointIndex, state, DateTime.now()).flatMap {
-      case 0 => Future.failed(new Exception("Can't update"))
+      case 0 => Future.failed(new UpdateException("Can't update"))
       case _ => Future.successful(CompletionMarker)
     }
 
@@ -99,7 +99,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
         }
       case _ =>
         logger.info(s"Can't create route for $driverId and $routeDate, it exists")
-        Future.failed(new Exception("Route Exists"))
+        Future.failed(new DuplicateRouteException("Route Exists"))
     }
   }
 
@@ -148,7 +148,7 @@ class RouteDao @Inject()(routeRepo: RouteRepo)(implicit ec: ExecutionContext)
   def assignRoute(routeId: Long, driverId: Long): Future[CompletionMarker] =
   //    TODO: check that new driver doesn't have route for same date
     routeRepo.assignRoute(routeId, driverId).flatMap {
-      case 0 => Future.failed(new Exception("can't assign"))
+      case 0 => Future.failed(new UpdateException(s"Can't assign route $routeId to driver $driverId"))
       case _ => Future.successful(CompletionMarker)
     }
 }
