@@ -32,4 +32,18 @@ class ReportController @Inject()(routeService: RouteService,
   })
 
   def getTodayReport(): Action[AnyContent] = getDayReport(DateTime.now())
+
+  def getMapReport(id:Long, from: DateTime, to: DateTime) = securedAsync(Admin.INSTANCE :: Nil, Action.async {
+    request: Request[AnyContent] => {
+      logger.info(s"Got request for Route day report for $from")
+      reportService.getMapPic(from, id).map { filename =>
+        logger.info(s"Serving report file $filename")
+        Ok.sendFile(
+          content = new java.io.File(filename),
+          fileName = _ => filename
+        )
+      }
+    }
+  })
+
 }
