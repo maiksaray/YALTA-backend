@@ -13,15 +13,18 @@ import scala.jdk.CollectionConverters._
 
 
 class ReportService @Inject()(val userService: UserService,
-                              val routeService: RouteService)
+                              val routeService: RouteService,
+                              val mapService: MapService)
                              (implicit ec: ExecutionContext) {
 
   implicit val pdfFactory: PdfFactory = new PdfNativeFactory()
 
   def margin = 20f //TODO: get this from config?
 
+  def reportMapHeight = 150
+
   def generateDayReport(date: DateTime): Future[String] = {
-    getReportData(date).map { data =>
+    getReportData(date, true).map { data =>
       createReport(date, data)
     }
   }
@@ -110,6 +113,13 @@ class ReportService @Inject()(val userService: UserService,
     for (pointData <- routeData.pointsData) {
       renderPoint(report, pointData)
     }
+
+    routeData.mapfile match {
+      case Some(mapfile) => report.drawImage(mapfile,
+        margin, report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight,
+        report.pageLayout.width - margin * 2, reportMapHeight)
+      case None => ()
+    }
   }
 
   private def renderPoint(report: Report, pointData: PointData) = {
@@ -155,21 +165,35 @@ class ReportService @Inject()(val userService: UserService,
     filename
   }
 
-  private def getReportData(date: DateTime): Future[List[RouteData]] = {
+  private def getReportData(date: DateTime, withMap: Boolean = false): Future[List[RouteData]] = {
     routeService.getRoutes(date.minusDays(1), date.plusDays(1)).flatMap { list =>
       Future.sequence(
         list.map { route =>
-          userService.get(route.getDriverId).map {
+          userService.get(route.getDriverId).flatMap {
             case Some(user) =>
-              RouteData(route.getId.toString,
-                user.getName,
-                route.getFinished,
-                route.getPoints.asScala.map { point =>
-                  PointData(point.getPoint.getName, point.getVisited, point.getUpdated)
-                }.toList)
+              (if (withMap) {
+                getMapPic(date, user.getId).map(Some.apply)
+              } else {
+                Future.successful(None)
+              }).map { maybeFile =>
+                RouteData(route.getId.toString,
+                  user.getName,
+                  route.getFinished,
+                  route.getPoints.asScala.map { point =>
+                    PointData(point.getPoint.getName, point.getVisited, point.getUpdated)
+                  }.toList,
+                  maybeFile)
+              }
           }
         }
       )
     }
+  }
+
+  def getMapPic(date: DateTime, id: Long): Future[String] = {
+    mapService.createMap(id,
+      date.withTime(0,0,0,0),
+      date.plusDays(1).withTime(0,0,0,0),
+      650,reportMapHeight)
   }
 }
