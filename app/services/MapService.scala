@@ -58,9 +58,9 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
   }
 
   private def getHistory(driverIs: Long, from: DateTime, to: DateTime): Future[List[Location]] = {
-    locationService.getHistory(driverIs, from, to).map(
-      seq => seq.toList
-    )
+    locationService.getHistory(driverIs, from, to).map { seq =>
+      seq.toList
+    }
   }
 
   def createMap(driverId: Long, from: DateTime, to: DateTime, width: Int = 500, heights: Int = 300): Future[String] = {
