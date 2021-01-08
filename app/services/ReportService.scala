@@ -114,8 +114,6 @@ class ReportService @Inject()(val userService: UserService,
       renderPoint(report, pointData)
     }
 
-    report.print("HELLO")
-
     routeData.mapfile match {
       case Some(mapfile) => report.drawImage(mapfile,
         margin, report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight,
