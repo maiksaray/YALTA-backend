@@ -4,6 +4,7 @@ import dao.implicits.UserTransform._
 import dao.mapping.User
 import dao.repo.UserRepo
 import javax.inject.{Inject, Singleton}
+import misc.CompletionMarker
 import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,18 +14,17 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
   extends BaseDao[User, Long, UserRepo](repo)(ec)
     with Logging {
 
-  override def ensureExists(): Future[Unit] = {
+  override def ensureExists(): Future[CompletionMarker] =
     super.ensureExists().flatMap { _ =>
       repo.findByName("admin").flatMap {
         case None =>
           for {
             _ <- create("admin", "admin", common.Admin.INSTANCE)
             _ <- create("driver", "driver", common.Driver.INSTANCE)
-          } yield Future.successful(())
-        case _ => Future.successful(())
+          } yield CompletionMarker
+        case _ => Future.successful(CompletionMarker)
       }
     }
-  }
 
   def create(name: String, pass: String, role: common.Role): Future[common.User] =
     create(new common.User(null, name, pass, role))
@@ -35,9 +35,8 @@ class UserDao @Inject()(repo: UserRepo)(implicit ec: ExecutionContext)
       .map(userDbToModel)
   }
 
-  def update(user: common.User): Future[common.User] = {
+  def update(user: common.User): Future[common.User] =
     repo.run(repo.update(user)).map(userDbToModel)
-  }
 
   //  TODO: maybe move this to new service layer?
   def auth(username: String, password: String): Future[Option[common.User]] = {

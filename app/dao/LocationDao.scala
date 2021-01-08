@@ -19,21 +19,19 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
 
   def create(lat: Double, lon: Double, userId: Long): Future[common.Location] = {
     logger.info(s"Adding point $lat:$lon for user id $userId")
-    create(Location(None, lat, lon, userId, Instant.now()))
+    create(Location(None, lat, lon, userId, DateTime.now()))
   }
 
-  def create(location: common.Location): Future[common.Location] = {
-    val eventualLocation = repo.create(location)
-    eventualLocation.map(locationDbToModel)
-  }
+  def create(location: common.Location): Future[common.Location] =
+    repo.create(location).map(locationDbToModel)
 
-  def bulkCreate(locations: List[common.Location]): Future[Option[Int]] = {
+
+  def bulkCreate(locations: List[common.Location]): Future[Option[Int]] =
     repo.bulkCreate(locations.map(locationModeltoDb))
-  }
 
-  def getRange(userId: Long, from: DateTime, to: DateTime): Future[Seq[common.Location]] = {
+  def getRange(userId: Long, from: DateTime, to: DateTime): Future[Seq[common.Location]] =
     repo.getRange(userId, from, to).map { seq =>
       seq.map(locationDbToModel)
     }
-  }
+
 }

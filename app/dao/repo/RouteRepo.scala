@@ -6,7 +6,6 @@ import java.time.Instant
 import com.byteslounge.slickrepo.meta.Keyed
 import dao.mapping.{Point, Route, RoutePoint}
 import javax.inject.Inject
-import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.ast.BaseTypedType
 
@@ -45,7 +44,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
 
     def index = column[Int]("index")
 
-    def updated = column[Instant]("updated", O.SqlType("timestamp"))
+    def updated = column[Instant]("updated", O.SqlType("timestamp default now()"))
 
     override def * = (id.?, routeId, pointId, visited, index, updated) <> ((RoutePoint.apply _).tupled, RoutePoint.unapply)
   }
@@ -164,7 +163,7 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
       .result.headOption
   }
 
-  private def getRouteWithPointsQuery(id: Long) = {
+  private def getRouteWithPointsQuery(id: Long) =
     for {
       route <- tableQuery if route.id === id
       routePoint <- routePoints if route.id === routePoint.routeId
@@ -172,7 +171,6 @@ class RouteRepo @Inject()(configProvider: DatabaseConfigProvider)(implicit ec: E
     } yield (route.id, route.driverId, route.date,
       routePoint.id, routePoint.visited, routePoint.index, routePoint.updated,
       point.id, point.lat, point.lon, point.name)
-  }
 
   def getRoute(id: Long): Future[Seq[(Route, RoutePoint, Point)]] = db.run {
     //    TODO: make custom mapping instead of this shiet with tuples

@@ -18,11 +18,9 @@ object UserTransform {
     case _ if role.isInstanceOf[common.Driver] => Driver
   }
 
-  implicit def userDbToModel(user: User): common.User = {
+  implicit def userDbToModel(user: User): common.User =
     new common.User(user.id, user.name, user.password, user.role)
-  }
 
-  implicit def userModelToDb(user: common.User): User = {
+  implicit def userModelToDb(user: common.User): User =
     User(user.getId, user.getName, user.getPassword, user.getRole)
-  }
 }

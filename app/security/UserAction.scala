@@ -18,21 +18,18 @@ class UserAction @Inject()(val parser: BodyParsers.Default,
 
 
   private def extractUser(req: RequestHeader): Future[Option[User]] = {
-
-    val un = req.session.get("sessionToken")
-      .flatMap(sessionDao.getSession)
-      .filter(_.expiration.isAfter(LocalDateTime.now()))
-      .map(_.username)
-    //      .map(userDao.getUser)
-    // TODO: come up with more idiomatic way to propagate this Option and not get Option[Future[Option...]]
-    un match {
-      case None => Future(None)
-      case Some(value) => userDao.getUser(value)
+    req.session.get("sessionToken") match {
+      case Some(token) => sessionDao.getSession(token).flatMap {
+        case Some(session) if session.expiration.isAfter(LocalDateTime.now()) =>
+          userDao.getUser(session.username)
+        case None => Future.successful(None)
+      }
+      case None => Future.successful(None)
     }
   }
 
-  def transform[A](request: Request[A]): Future[UserRequest[A]] = Future.successful {
-    val user = extractUser(request)
-    new UserRequest(user, request)
-  }
+  def transform[A](request: Request[A]): Future[UserRequest[A]] =
+    Future.successful(
+      new UserRequest(extractUser(request), request)
+    )
 }

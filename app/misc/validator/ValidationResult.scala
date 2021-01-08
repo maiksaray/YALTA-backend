@@ -4,4 +4,4 @@ sealed trait ValidationResult
 
 case object Validated extends ValidationResult
 
-case class ValidationFailed(reason: String) extends ValidationResult
+abstract class ValidationFailed(reason: String) extends ValidationResult

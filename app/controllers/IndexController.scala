@@ -39,19 +39,19 @@ class IndexController @Inject()(userDao: UserDao,
   def login(username: String, password: String): Action[AnyContent] = Action.async {
     implicit request => {
       //      TODO: add case for already exisiting session
-
-      userDao.auth(username, password) map {
+      userDao.auth(username, password).flatMap {
         case Some(user) => {
           logger.info(s"User $username authed, proceeding with token")
-          val token = sessionDao.generateToken(username)
           val userString = Json.toJson(user)
-          logger.info(s"Replying to user $username with new session token")
-          Ok(userString).withSession(request.session + (sessionTokenName -> token))
+          sessionDao.generateToken(username).map { token =>
+            logger.info(s"Replying to user $username with new session token")
+            Ok(userString).withSession(request.session + (sessionTokenName -> token))
+          }
         }
         case None => {
           logger.warn(s"Login attempt for username $username failed")
           val err = new InvalidCredentials("username or password are incorrect")
-          Unauthorized(Json.toJson(err))
+          Future.successful(Unauthorized(Json.toJson(err)))
         }
       }
     }
@@ -59,15 +59,13 @@ class IndexController @Inject()(userDao: UserDao,
 
   def whoami(): Action[AnyContent] = Action.async {
     implicit request => {
-      val maybeToken = request.session
-        .get(sessionTokenName)
-      maybeToken match {
+      request.session
+        .get(sessionTokenName) match {
         case None =>
           logger.info(s"User data requested by unauthorized user, rejecting")
           Future.successful(Unauthorized(unauthorizedError))
         case Some(token) => {
-          val maybeSession = sessionDao.getSession(token)
-          maybeSession match {
+          sessionDao.getSession(token).flatMap {
             case None =>
               logger.info(s"User data requested for expired/missing session for token, rejecting")
               Future.successful(Unauthorized(unauthorizedError))
@@ -87,21 +85,20 @@ class IndexController @Inject()(userDao: UserDao,
     }
   }
 
-  def logout(): Action[AnyContent] = Action {
+  def logout(): Action[AnyContent] = Action.async {
     implicit request => {
-      val maybeToken = request.session
+      request.session
         .get(sessionTokenName)
-      maybeToken match {
-        case None => Unauthorized(unauthorizedError)
-        case Some(token) =>
-          val maybeDeleted = sessionDao.deleteSession(token)
-          maybeDeleted match {
+        .map { token =>
+          sessionDao.deleteSession(token).map {
             case None => BadRequest(Json.toJson(
               new BadRequest("Can not terminate absent session")))
             case Some(_) => Ok("Successfully logged out")
           }
-      }
+        }
+    } match {
+      case None => Future.successful(Unauthorized(unauthorizedError))
+      case Some(res) => res
     }
   }
-
 }

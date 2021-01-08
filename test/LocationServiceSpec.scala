@@ -11,7 +11,6 @@ class LocationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSui
 
   def locationService(implicit app: Application) = Application.instanceCache[LocationService].apply(app)
 
-  val historyStart = DateTime.now()
 
   "Location Serivce" must {
     "Create new locations" in {
@@ -22,7 +21,6 @@ class LocationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSui
     }
 
     "Post History" in {
-      Thread.sleep(1000)
       val updates = new common.OffsetedLocationUpdate(10.0, 10.10, 0.3) ::
         new common.OffsetedLocationUpdate(11.0, 11.10, 0.200) ::
         new common.OffsetedLocationUpdate(12.0, 12.10, 0.300) ::
@@ -35,10 +33,21 @@ class LocationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with TestSui
     }
 
     "Get gistory" in {
-      val historyEnd = DateTime.now()
-      val histpry = locationService.getHistory(1, historyStart, historyEnd)
-      whenReady(histpry) {
-        res => assert(res.length == 4)
+      val historyStart = DateTime.now()
+
+      val newLoc = locationService.create(10.0, 10.0, 1)
+      Thread.sleep(2000)
+      val updates = new common.OffsetedLocationUpdate(10.0, 10.10, 0.3) ::
+        new common.OffsetedLocationUpdate(11.0, 11.10, 0.200) ::
+        new common.OffsetedLocationUpdate(12.0, 12.10, 0.300) ::
+        Nil
+      whenReady(newLoc) { _ =>
+        whenReady(locationService.postOfflineHistory(updates, 1)) { _ =>
+          val historyEnd = DateTime.now()
+          whenReady(locationService.getHistory(1, historyStart, historyEnd)) {
+            res => assert(res.length == 4)
+          }
+        }
       }
     }
   }

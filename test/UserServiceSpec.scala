@@ -1,4 +1,4 @@
-import exceptions.InvalidDataException
+import misc.InvalidDataException
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{Outcome, TestSuite}
 import org.scalatestplus.mockito.MockitoSugar
