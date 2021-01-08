@@ -2,7 +2,7 @@ package services
 
 import java.io.File
 
-import common.Location
+import common.{Location, Point, RoutePoint}
 import javax.inject.{Inject, Singleton}
 import org.joda.time.DateTime
 import play.api.Logging
@@ -57,19 +57,35 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
     s"pt=${head.getLon},${head.getLat},pmgns~${tail.getLon},${tail.getLat},pmrds"
   }
 
-  private def getHistory(driverIs: Long, from: DateTime, to: DateTime): Future[List[Location]] = {
+  private def getHistory(driverIs: Long, from: DateTime, to: DateTime): Future[List[Location]] =
     locationService.getHistory(driverIs, from, to).map { seq =>
       seq.toList
     }
+
+  def getPoints(points: List[RoutePoint]): String = {
+    points.zipWithIndex.map {
+      case (point, i) =>
+        val color = if (point.getVisited) "gn" else "rd"
+        s"${point.getPoint.getLon},${point.getPoint.getLat},pm2${color}m${i + 1}"
+    }.mkString("~")
   }
 
-  def createMap(driverId: Long, from: DateTime, to: DateTime, width: Int = 500, heights: Int = 300): Future[String] = {
+  def createMap(driverId: Long, from: DateTime, to: DateTime,
+                width: Int = 500, heights: Int = 300,
+                points: List[RoutePoint] = List.empty): Future[String] = {
     getHistory(driverId, from, to).map { locations =>
       val boouds = getBounds(locations)
       val line = getLine(locations)
       val markers = getMarkers(locations)
 
-      val url = s"$baseUrl&$boouds&$line&$markers&size=$width,$heights"
+      val url =
+        if (points.isEmpty) {
+          s"$baseUrl&$boouds&$line&$markers&size=$width,$heights"
+        } else {
+          val pointString = getPoints(points)
+          s"$baseUrl&$boouds&$line&$markers~$pointString&size=$width,$heights"
+
+        }
 
       val mapFile = new File(s"mapfile-$driverId-${from.toString("DD-MM-YYYY")}.png")
 

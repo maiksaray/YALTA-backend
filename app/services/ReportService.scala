@@ -4,6 +4,7 @@ import com.sysalto.render.PdfNativeFactory
 import com.sysalto.report.Implicits._
 import com.sysalto.report.reportTypes.{ReportColor, ReportPageOrientation}
 import com.sysalto.report.util._
+import common.{Point, RoutePoint}
 import javax.inject.Inject
 import misc.reports.{PointData, RouteData}
 import org.joda.time.DateTime
@@ -125,11 +126,13 @@ class ReportService @Inject()(val userService: UserService,
   private def renderPoint(report: Report, pointData: PointData) = {
     report.nextLine()
     val pointRow = ReportRow(margin * 2, report.pageLayout.width - margin, List(
-      Column("Point", Flex(1)),
-      Column("State", Flex(1)),
-      Column("Time", Flex(1))
+      Column("Index", Flex(1)),
+      Column("Point", Flex(2)),
+      Column("State", Flex(2)),
+      Column("Time", Flex(2))
     ))
     report.print(List(
+      ReportCell((pointData.index + 1).toString).inside(pointRow, "Index"),
       ReportCell(pointData.name).inside(pointRow, "Point"),
       ReportCell(if (pointData.finished) "Visited" else "Not Visited").inside(pointRow, "State"),
       ReportCell(if (pointData.finished) pointData.ts.toString("HH:mm:ss") else "N/A").inside(pointRow, "Time")
@@ -169,19 +172,22 @@ class ReportService @Inject()(val userService: UserService,
     routeService.getRoutes(date.minusDays(1), date.plusDays(1)).flatMap { list =>
       Future.sequence(
         list.map { route =>
+          val routePoints = route.getPoints.asScala
+            .sortBy(_.getIndex).toList
           userService.get(route.getDriverId).flatMap {
             case Some(user) =>
               (if (withMap) {
-                getMapPic(date, user.getId).map(Some.apply)
+                getMapPic(date, user.getId, routePoints)
+                  .map(Some.apply)
               } else {
                 Future.successful(None)
               }).map { maybeFile =>
                 RouteData(route.getId.toString,
                   user.getName,
                   route.getFinished,
-                  route.getPoints.asScala.map { point =>
-                    PointData(point.getPoint.getName, point.getVisited, point.getUpdated)
-                  }.toList,
+                  routePoints.map { point =>
+                    PointData(point.getIndex, point.getPoint.getName, point.getVisited, point.getUpdated)
+                  },
                   maybeFile)
               }
           }
@@ -190,10 +196,11 @@ class ReportService @Inject()(val userService: UserService,
     }
   }
 
-  def getMapPic(date: DateTime, id: Long): Future[String] = {
+  def getMapPic(date: DateTime, id: Long, points: List[RoutePoint] = List.empty): Future[String] = {
     mapService.createMap(id,
-      date.withTime(0,0,0,0),
-      date.plusDays(1).withTime(0,0,0,0),
-      650,reportMapHeight)
+      date.withTime(0, 0, 0, 0),
+      date.plusDays(1).withTime(0, 0, 0, 0),
+      650, reportMapHeight,
+      points)
   }
 }
