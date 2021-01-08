@@ -41,7 +41,7 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
       math.abs(loc.getLon - lonAvg)
     }.max
 
-    s"ll=$lonAvg,$latAvg&spn=${maxLonDiff * 2},${maxLatDiff * 2}"
+    s"ll=$lonAvg,$latAvg&spn=${maxLonDiff * 2},${maxLatDiff * 3}"
   }
 
   private def getLine(locations: List[Location]): String = {
@@ -54,7 +54,7 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
   private def getMarkers(locations: List[Location]): String = {
     val head = locations.head
     val tail = locations.last
-    s"pt=${head.getLon},${head.getLat},pmgnm~${tail.getLon},${tail.getLat},pmrd"
+    s"pt=${head.getLon},${head.getLat},pmgns~${tail.getLon},${tail.getLat},pmrds"
   }
 
   private def getHistory(driverIs: Long, from: DateTime, to: DateTime): Future[List[Location]] = {
@@ -69,9 +69,9 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
       val line = getLine(locations)
       val markers = getMarkers(locations)
 
-      val url = s"$baseUrl&$boouds&$line&$markers"
+      val url = s"$baseUrl&$boouds&$line&$markers&size=$width,$heights"
 
-      val mapFile = new File("mapfile.png")
+      val mapFile = new File(s"mapfile$driverId.png")
 
       val request = basicRequest.get(uri"$url")
         .response(asFile(mapFile))

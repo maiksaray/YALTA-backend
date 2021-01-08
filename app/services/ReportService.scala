@@ -21,6 +21,8 @@ class ReportService @Inject()(val userService: UserService,
 
   def margin = 20f //TODO: get this from config?
 
+  def reportMapHeight = 150
+
   def generateDayReport(date: DateTime): Future[String] = {
     getReportData(date, true).map { data =>
       createReport(date, data)
@@ -112,10 +114,12 @@ class ReportService @Inject()(val userService: UserService,
       renderPoint(report, pointData)
     }
 
+    report.print("HELLO")
+
     routeData.mapfile match {
       case Some(mapfile) => report.drawImage(mapfile,
-        margin, report.getCurrentPosition.y,
-        report.pageLayout.width - margin, report.getCurrentPosition.y + 300)
+        margin, report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight,
+        report.pageLayout.width - margin * 2, reportMapHeight)
       case None => ()
     }
   }
@@ -191,6 +195,7 @@ class ReportService @Inject()(val userService: UserService,
   def getMapPic(date: DateTime, id: Long): Future[String] = {
     mapService.createMap(id,
       date.withTime(0,0,0,0),
-      date.plusDays(1).withTime(0,0,0,0))
+      date.plusDays(1).withTime(0,0,0,0),
+      650,reportMapHeight)
   }
 }
