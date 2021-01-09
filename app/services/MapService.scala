@@ -99,7 +99,7 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
           s"$baseUrl&$boouds&$line&$markers&size=$width,$heights"
         } else {
           val pointString = getPoints(points)
-          if(markers.isBlank){
+          if(markers.isEmpty){
             s"$baseUrl&$boouds&$line&pt=$pointString&size=$width,$heights"
           } else{
             s"$baseUrl&$boouds&$line&$markers~$pointString&size=$width,$heights"

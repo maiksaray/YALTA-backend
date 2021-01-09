@@ -122,7 +122,7 @@ class ReportService @Inject()(val userService: UserService,
 
     routeData.mapfile match {
       case Some(mapfile) =>
-        if (report.lineLeft < 8) {
+        if (report.lineLeft <= 9) {
           report.nextPage()
         }
         val yOffset = report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight
