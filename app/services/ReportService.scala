@@ -69,7 +69,7 @@ class ReportService @Inject()(val userService: UserService,
 
   private def setStyle(report: Report) = {
     report.setHeaderSize = { pgNbr =>
-      if (pgNbr == 1) 90f else 120f
+      if (pgNbr == 1) 90f else 90f
     }
 
     report.setFooterSize = { _ =>
@@ -87,6 +87,11 @@ class ReportService @Inject()(val userService: UserService,
       Column("Driver", Flex(1)),
       Column("Status", Flex(1))
     ))
+
+
+    if (report.lineLeft <= routeData.pointsData.length + 3) {
+      report.nextPage()
+    }
 
     val routeState = if (routeData.finished) "Completed" else "In Progress"
     report.print(List(
@@ -116,14 +121,23 @@ class ReportService @Inject()(val userService: UserService,
     }
 
     routeData.mapfile match {
-      case Some(mapfile) => report.drawImage(mapfile,
-        margin, report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight,
-        report.pageLayout.width - margin * 2, reportMapHeight)
+      case Some(mapfile) =>
+        if (report.lineLeft < 8) {
+          report.nextPage()
+        }
+        val yOffset = report.pageLayout.height - report.getCurrentPosition.y + reportMapHeight
+        report.drawImage(mapfile,
+          margin, yOffset,
+          report.pageLayout.width - margin * 2, reportMapHeight)
+        report.setYPosition(yOffset)
       case None => ()
     }
   }
 
   private def renderPoint(report: Report, pointData: PointData) = {
+    if (report.lineLeft < 2) {
+      report.nextPage()
+    }
     report.nextLine()
     val pointRow = ReportRow(margin * 2, report.pageLayout.width - margin, List(
       Column("Index", Flex(1)),
@@ -136,6 +150,7 @@ class ReportService @Inject()(val userService: UserService,
       ReportCell(pointData.name).inside(pointRow, "Point"),
       ReportCell(if (pointData.finished) "Visited" else "Not Visited").inside(pointRow, "State"),
       ReportCell(if (pointData.finished) pointData.ts.toString("HH:mm:ss") else "N/A").inside(pointRow, "Time")
+
     ))
   }
 
@@ -179,17 +194,23 @@ class ReportService @Inject()(val userService: UserService,
               (if (withMap) {
                 getMapPic(date, user.getId, routePoints)
                   .map(Some.apply)
+                  .map(file => (user.getName, file))
               } else {
-                Future.successful(None)
-              }).map { maybeFile =>
-                RouteData(route.getId.toString,
-                  user.getName,
-                  route.getFinished,
-                  routePoints.map { point =>
-                    PointData(point.getIndex, point.getPoint.getName, point.getVisited, point.getUpdated)
-                  },
-                  maybeFile)
-              }
+                Future.successful((user.getName, None))
+              })
+            case None =>
+              Future.successful(("Unassigned", None))
+          }.map {
+            case (username, maybeFile) =>
+              RouteData(
+                route.getId.toString,
+                username,
+                route.getFinished,
+                route.getPoints.asScala.map { point =>
+                  PointData(point.getIndex, point.getPoint.getName, point.getVisited, point.getUpdated)
+                }.toList,
+                maybeFile
+              )
           }
         }
       )
