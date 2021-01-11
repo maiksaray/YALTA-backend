@@ -8,6 +8,7 @@ import common.{Point, RoutePoint}
 import javax.inject.Inject
 import misc.reports.{PointData, RouteData}
 import org.joda.time.DateTime
+import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
@@ -16,7 +17,7 @@ import scala.jdk.CollectionConverters._
 class ReportService @Inject()(val userService: UserService,
                               val routeService: RouteService,
                               val mapService: MapService)
-                             (implicit ec: ExecutionContext) {
+                             (implicit ec: ExecutionContext) extends Logging {
 
   implicit val pdfFactory: PdfFactory = new PdfNativeFactory()
 
@@ -80,6 +81,8 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   def renderRoute(report: Report, routeData: RouteData) = {
+    logger.info(s"rendering route ${routeData.name}")
+
     report.nextLine(3)
 
     val routeRow = ReportRow(margin, report.pageLayout.width - margin, List(
@@ -120,6 +123,8 @@ class ReportService @Inject()(val userService: UserService,
       renderPoint(report, pointData)
     }
 
+    logger.info(s"About to render map ${routeData.mapfile}")
+
     routeData.mapfile match {
       case Some(mapfile) =>
         if (report.lineLeft <= 9) {
@@ -132,6 +137,7 @@ class ReportService @Inject()(val userService: UserService,
         report.setYPosition(yOffset)
       case None => ()
     }
+    logger.info(s"rendered report for ${routeData.name}")
   }
 
   private def renderPoint(report: Report, pointData: PointData) = {
@@ -159,6 +165,7 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   private def renderReport(report: Report, date: DateTime, data: List[RouteData]) = {
+    logger.info(s"started rendering report for ${data.length} routes")
     setStyle(report)
 
     setRunningSections(report, date)
