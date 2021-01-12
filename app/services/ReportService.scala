@@ -226,8 +226,7 @@ class ReportService @Inject()(val userService: UserService,
 
   def getMapPic(date: DateTime, id: Long, points: List[RoutePoint] = List.empty): Future[String] = {
     mapService.createMap(id,
-      date.withTime(0, 0, 0, 0),
-      date.plusDays(1).withTime(0, 0, 0, 0),
+      date.withTimeAtStartOfDay(), date.plusDays(1).withTimeAtStartOfDay(),
       650, reportMapHeight,
       points)
   }

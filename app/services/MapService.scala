@@ -111,7 +111,9 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
           }
         }
 
-      val mapFile = new File(s"mapfile-$driverId-${from.toString("DD-MM-YYYY")}.png")
+      val mapfilename = s"mapfile-$driverId-${from.toString("DD-MM-YYYY")}-${DateTime.now()}.png"
+      val mapFile = new File(mapfilename)
+
       logger.info(s"requesting map at $url to $mapFile")
       val request = basicRequest.get(uri"$url")
         .response(asFile(mapFile))
