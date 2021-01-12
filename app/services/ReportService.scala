@@ -191,7 +191,7 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   private def getReportData(date: DateTime, withMap: Boolean = false): Future[List[RouteData]] = {
-    routeService.getRoutes(date.minusDays(1), date.plusDays(1)).flatMap { list =>
+    routeService.getRoutes(date.withTimeAtStartOfDay(), date.plusDays(1).withTimeAtStartOfDay()).flatMap { list =>
       Future.sequence(
         list.map { route =>
           val routePoints = route.getPoints.asScala
