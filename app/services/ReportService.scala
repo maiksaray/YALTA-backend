@@ -191,8 +191,11 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   private def getReportData(date: DateTime, withMap: Boolean = false): Future[List[RouteData]] = {
-    routeService.getRoutes(date.withTimeAtStartOfDay(),
-      date.plusDays(1).withTimeAtStartOfDay().minusMinutes(1)
+    val from = date.withTimeAtStartOfDay()
+    val to = date.plusDays(1).withTimeAtStartOfDay().minusMinutes(1)
+    logger.info(s"Requesting routes for report from ${from.toString} to ${to.toString}")
+    routeService.getRoutes(from,
+      to
     ).flatMap { list =>
       Future.sequence(
         list.map { route =>
