@@ -26,7 +26,7 @@ class ReportService @Inject()(val userService: UserService,
   def reportMapHeight = 150
 
   def generateDayReport(date: DateTime): Future[String] = {
-    getReportData(date, true).map { data =>
+    getReportData(date, withMap = true).map { data =>
       createReport(date, data)
     }
   }
@@ -36,7 +36,7 @@ class ReportService @Inject()(val userService: UserService,
       .verticalShade(ReportColor(255, 255, 255), ReportColor(255, 255, 180)).draw()
   }
 
-  private def setRunningSections(report: Report, date: DateTime) = {
+  private def setRunningSections(report: Report, date: DateTime): Unit = {
     report.headerFct = {
       case (_, _) =>
         report.setYPosition(30)
@@ -68,7 +68,7 @@ class ReportService @Inject()(val userService: UserService,
 
   }
 
-  private def setStyle(report: Report) = {
+  private def setStyle(report: Report): Unit = {
     report.setHeaderSize = { pgNbr =>
       if (pgNbr == 1) 90f else 90f
     }
@@ -80,7 +80,7 @@ class ReportService @Inject()(val userService: UserService,
     report.newPageFct = _ => drawbackgroundImage(report)
   }
 
-  def renderRoute(report: Report, routeData: RouteData) = {
+  def renderRoute(report: Report, routeData: RouteData): Unit = {
     logger.info(s"rendering route ${routeData.name}")
 
     report.nextLine(3)
@@ -140,7 +140,7 @@ class ReportService @Inject()(val userService: UserService,
     logger.info(s"rendered report for ${routeData.name}")
   }
 
-  private def renderPoint(report: Report, pointData: PointData) = {
+  private def renderPoint(report: Report, pointData: PointData): Unit = {
     if (report.lineLeft < 2) {
       report.nextPage()
     }
@@ -160,11 +160,11 @@ class ReportService @Inject()(val userService: UserService,
     ))
   }
 
-  private def renderPreContent(report: Report, date: DateTime, data: List[RouteData]) = {
+  private def renderPreContent(report: Report, date: DateTime, data: List[RouteData]): Unit = {
     report.nextLine(3)
   }
 
-  private def renderReport(report: Report, date: DateTime, data: List[RouteData]) = {
+  private def renderReport(report: Report, date: DateTime, data: List[RouteData]): Unit = {
     logger.info(s"started rendering report for ${data.length} routes")
     setStyle(report)
 
@@ -191,20 +191,22 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   private def getReportData(date: DateTime, withMap: Boolean = false): Future[List[RouteData]] = {
-    routeService.getRoutes(date.withTimeAtStartOfDay(), date.plusDays(1).withTimeAtStartOfDay()).flatMap { list =>
+    routeService.getRoutes(date.withTimeAtStartOfDay(),
+      date.plusDays(1).withTimeAtStartOfDay().minusMinutes(1)
+    ).flatMap { list =>
       Future.sequence(
         list.map { route =>
           val routePoints = route.getPoints.asScala
             .sortBy(_.getIndex).toList
           userService.get(route.getDriverId).flatMap {
             case Some(user) =>
-              (if (withMap) {
+              if (withMap) {
                 getMapPic(date, user.getId, routePoints)
                   .map(Some.apply)
                   .map(file => (user.getName, file))
               } else {
                 Future.successful((user.getName, None))
-              })
+              }
             case None =>
               Future.successful(("Unassigned", None))
           }.map {
