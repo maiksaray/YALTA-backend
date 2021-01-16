@@ -58,6 +58,7 @@ tasks.test.setMaxParallelForks(1)
 dependencies {
     implementation "org.scala-lang:scala-library:$projectScalaVersion"
     implementation "com.typesafe.play:play-guice_$projectScalaVersion:2.7.5"
+    implementation "com.typesafe.play:filters-helpers_$projectScalaVersion:2.7.5"
 
     implementation "com.typesafe.play:play-slick_$projectScalaVersion:4.0.2"
     //need to specify slick version so that play-slick does not bring 3.3.2 with autoinc bug
