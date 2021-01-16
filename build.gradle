@@ -1,0 +1,96 @@
+plugins {
+    id 'scala'
+    id 'org.gradle.playframework' version '0.10'
+    id 'idea'
+    id "org.jetbrains.kotlin.jvm" version "1.4.10"
+    id "com.github.maiflai.scalatest" version "0.30"
+}
+
+def projectScalaVersion = "2.13"
+
+play {
+    platform {
+        playVersion = '2.7.5'
+        scalaVersion = projectScalaVersion
+        javaVersion = JavaVersion.VERSION_11
+    }
+}
+
+sourceSets {
+    main {
+        scala {
+            srcDir 'app'
+            exclude 'app/common/*'
+        }
+        kotlin {
+            srcDir 'app/common'
+        }
+    }
+}
+
+compileScala.classpath += files(compileKotlin.destinationDir)
+
+compilePlayRoutes.additionalImports = ["misc.binders._"]
+
+task debugPlay {
+    def runPlayTask = tasks.findByName('runPlay')
+    runPlayTask.forkOptions.jvmArgs = ['-Xdebug', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999']
+    inputs.files(runPlayTask.getAssetsDirs())
+    doLast {
+        runPlayTask.run()
+    }
+}
+
+//This accompanies playBinary task, but copies custom runner that can be run by heroku with it's env.
+//Related issues: https://github.com/gradle/playframework/issues/81
+task copyRunner {
+    doLast {
+        copy {
+            from "scripts/fixed-runner"
+            into "build/stage/main/bin"
+        }
+    }
+}
+
+tasks.stage.finalizedBy(copyRunner)
+tasks.test.setMaxParallelForks(1)
+
+dependencies {
+    implementation "org.scala-lang:scala-library:$projectScalaVersion"
+    implementation "com.typesafe.play:play-guice_$projectScalaVersion:2.7.5"
+    implementation "com.typesafe.play:filters-helpers_$projectScalaVersion:2.7.5"
+
+    implementation "com.typesafe.play:play-slick_$projectScalaVersion:4.0.2"
+    //need to specify slick version so that play-slick does not bring 3.3.2 with autoinc bug
+    implementation "com.typesafe.slick:slick_$projectScalaVersion:3.3.3"
+    implementation "com.typesafe.play:play-slick-evolutions_$projectScalaVersion:4.0.2"
+    implementation "com.byteslounge:slick-repo_$projectScalaVersion:1.5.3"
+
+    implementation "com.typesafe.play:play-logback_$projectScalaVersion:2.7.5"
+
+    implementation "com.google.code.gson:gson:2.8.6"
+
+    implementation "com.h2database:h2:1.4.199"
+    implementation "org.postgresql:postgresql:42.2.18"
+
+    implementation "com.softwaremill.sttp.client3:core_$projectScalaVersion:3.0.0-RC11"
+
+    implementation "com.github.sysalto:reactivereports-core_$projectScalaVersion:1.0.7"
+    implementation "com.github.sysalto:reactivereports-pdf-render_$projectScalaVersion:1.0.7"
+    testImplementation "org.scalatestplus.play:scalatestplus-play_$projectScalaVersion:4.0.3"
+    testImplementation "org.mockito:mockito-core:3.6.0"
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        name "lightbend-maven-releases"
+        url "https://repo.lightbend.com/lightbend/maven-release"
+    }
+    ivy {
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
+        layout "ivy"
+    }
+}

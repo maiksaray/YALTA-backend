@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#this exists so that we can call this from Procfile and pass heroku env as MAIN_OPTS to runner script
+#in normal conditions we just can call main with opts, but gradle stage provides broken bin that can't accept opts!
+#ALso to reprocess heroku-provided db connection string that does not align with one postres driver actually accepts
+#heroku:    postgres://<username>:<password>@<host>/<dbname>
+#required:  jdbc:postgresql://<host>:<port>/<dbname>?sslmode=require&user=<username>&password=<password>
+IFS='@' read -r -a parts <<< "$DATABASE_URL"
+HOST=${parts[1]}
+IFS=':' read -r -a logpass <<< "${parts[0]}"
+PASSWORD=${logpass[2]}
+USER=${logpass[1]//\/}
+echo $HOST
+echo $USER
+echo $PASSWORD
+URL="jdbc:postgresql://"$HOST #?user=${USER}&password=$PASSWORD"
+echo $URL
+export MAIN_OPTS="-Dhttp.port=$PORT -Dplay.http.secret.key=$APP_SECRET -Dconfig.resource=production.conf -Dslick.dbs.prod.db.url=$URL -Dslick.dbs.prod.db.user=$USER -Dslick.dbs.prod.db.password=$PASSWORD"
+echo $MAIN_OPTS
+build/stage/main/bin/main

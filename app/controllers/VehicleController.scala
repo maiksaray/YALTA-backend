@@ -1,39 +1,23 @@
 package controllers
 
+import common._
+import dao.VehicleDao
 import javax.inject.Inject
-import models.VehicleRepository
-import play.api.libs.json.Json
 import play.api.mvc._
+import security.UserAction
 
 import scala.concurrent.ExecutionContext
-import javax.inject._
 
-import models._
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-import play.api.i18n._
-import play.api.libs.json.Json
-import play.api.mvc._
-
-import scala.concurrent.{ExecutionContext, Future}
-
-class VehicleController @Inject()(repo: VehicleRepository,cc: MessagesControllerComponents
+class VehicleController @Inject()(dao: VehicleDao,
+                                  cc: MessagesControllerComponents,
+                                  override val userAction: UserAction
                                  )(implicit ec: ExecutionContext)
-  extends MessagesAbstractController(cc) {
+  extends SecuredController(cc, userAction) {
 
-  def getVehicles = Action.async { implicit request =>
-    repo.getClasses().map { classes =>
-      Ok(Json.toJson(classes))
+  def getVehicles(): Action[AnyContent] = securedAsync(Admin.INSTANCE :: Nil, Action {
+    request: Request[AnyContent] => {
+      Ok("{}")
     }
   }
-
-
-
-  def setup = Action {
-    repo.fillStub()
-    Ok("filled")
-  }
-
-
+  )
 }
