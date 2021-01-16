@@ -54,7 +54,10 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
         math.abs(lon - lonAvg)
     }.max
 
-    s"ll=$lonAvg,$latAvg&spn=${maxLonDiff * 2},${maxLatDiff * 3}"
+    val lonMultiplier = (1 - maxLonDiff / 180) * 2
+    val latMultiplier = (1 - maxLatDiff / 180) * 3
+
+    s"ll=$lonAvg,$latAvg&spn=${maxLonDiff * lonMultiplier},${maxLatDiff * latMultiplier}"
   }
 
   private def getLine(locations: List[Location]): String = {
@@ -89,7 +92,9 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
   def createMap(driverId: Long, from: DateTime, to: DateTime,
                 width: Int = 500, heights: Int = 300,
                 points: List[RoutePoint] = List.empty): Future[String] = {
+    logger.info(s"Creating map for driver $driverId, with ${points.length}")
     getHistory(driverId, from, to).map { locations =>
+      logger.info(s"got  $driverId location history: ${locations.length}")
       val boouds = getBounds(locations, points.map(_.getPoint))
       val line = getLine(locations)
       val markers = getMarkers(locations)
@@ -99,19 +104,22 @@ class MapService @Inject()(locationService: LocationService)(implicit ec: Execut
           s"$baseUrl&$boouds&$line&$markers&size=$width,$heights"
         } else {
           val pointString = getPoints(points)
-          if(markers.isEmpty){
+          if (markers.isEmpty) {
             s"$baseUrl&$boouds&$line&pt=$pointString&size=$width,$heights"
-          } else{
+          } else {
             s"$baseUrl&$boouds&$line&$markers~$pointString&size=$width,$heights"
           }
         }
 
-      val mapFile = new File(s"mapfile-$driverId-${from.toString("DD-MM-YYYY")}.png")
+      val mapfilename = s"mapfile-$driverId-${from.toString("DD-MM-YYYY")}-${DateTime.now()}.png"
+      val mapFile = new File(mapfilename)
 
+      logger.info(s"requesting map at $url to $mapFile")
       val request = basicRequest.get(uri"$url")
         .response(asFile(mapFile))
 
       val response = request.send(backend)
+      logger.info(s"got map")
 
       mapFile.getName
     }

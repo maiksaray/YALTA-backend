@@ -8,6 +8,7 @@ import common.{Point, RoutePoint}
 import javax.inject.Inject
 import misc.reports.{PointData, RouteData}
 import org.joda.time.DateTime
+import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
@@ -16,7 +17,7 @@ import scala.jdk.CollectionConverters._
 class ReportService @Inject()(val userService: UserService,
                               val routeService: RouteService,
                               val mapService: MapService)
-                             (implicit ec: ExecutionContext) {
+                             (implicit ec: ExecutionContext) extends Logging {
 
   implicit val pdfFactory: PdfFactory = new PdfNativeFactory()
 
@@ -25,7 +26,7 @@ class ReportService @Inject()(val userService: UserService,
   def reportMapHeight = 150
 
   def generateDayReport(date: DateTime): Future[String] = {
-    getReportData(date, true).map { data =>
+    getReportData(date, withMap = true).map { data =>
       createReport(date, data)
     }
   }
@@ -35,7 +36,7 @@ class ReportService @Inject()(val userService: UserService,
       .verticalShade(ReportColor(255, 255, 255), ReportColor(255, 255, 180)).draw()
   }
 
-  private def setRunningSections(report: Report, date: DateTime) = {
+  private def setRunningSections(report: Report, date: DateTime): Unit = {
     report.headerFct = {
       case (_, _) =>
         report.setYPosition(30)
@@ -67,7 +68,7 @@ class ReportService @Inject()(val userService: UserService,
 
   }
 
-  private def setStyle(report: Report) = {
+  private def setStyle(report: Report): Unit = {
     report.setHeaderSize = { pgNbr =>
       if (pgNbr == 1) 90f else 90f
     }
@@ -79,7 +80,9 @@ class ReportService @Inject()(val userService: UserService,
     report.newPageFct = _ => drawbackgroundImage(report)
   }
 
-  def renderRoute(report: Report, routeData: RouteData) = {
+  def renderRoute(report: Report, routeData: RouteData): Unit = {
+    logger.info(s"rendering route ${routeData.name}")
+
     report.nextLine(3)
 
     val routeRow = ReportRow(margin, report.pageLayout.width - margin, List(
@@ -120,6 +123,8 @@ class ReportService @Inject()(val userService: UserService,
       renderPoint(report, pointData)
     }
 
+    logger.info(s"About to render map ${routeData.mapfile}")
+
     routeData.mapfile match {
       case Some(mapfile) =>
         if (report.lineLeft <= 9) {
@@ -132,9 +137,10 @@ class ReportService @Inject()(val userService: UserService,
         report.setYPosition(yOffset)
       case None => ()
     }
+    logger.info(s"rendered report for ${routeData.name}")
   }
 
-  private def renderPoint(report: Report, pointData: PointData) = {
+  private def renderPoint(report: Report, pointData: PointData): Unit = {
     if (report.lineLeft < 2) {
       report.nextPage()
     }
@@ -154,11 +160,12 @@ class ReportService @Inject()(val userService: UserService,
     ))
   }
 
-  private def renderPreContent(report: Report, date: DateTime, data: List[RouteData]) = {
+  private def renderPreContent(report: Report, date: DateTime, data: List[RouteData]): Unit = {
     report.nextLine(3)
   }
 
-  private def renderReport(report: Report, date: DateTime, data: List[RouteData]) = {
+  private def renderReport(report: Report, date: DateTime, data: List[RouteData]): Unit = {
+    logger.info(s"started rendering report for ${data.length} routes")
     setStyle(report)
 
     setRunningSections(report, date)
@@ -184,20 +191,25 @@ class ReportService @Inject()(val userService: UserService,
   }
 
   private def getReportData(date: DateTime, withMap: Boolean = false): Future[List[RouteData]] = {
-    routeService.getRoutes(date.minusDays(1), date.plusDays(1)).flatMap { list =>
+    val from = date.withTimeAtStartOfDay()
+    val to = date.plusDays(1).withTimeAtStartOfDay().minusMinutes(1)
+    logger.info(s"Requesting routes for report from ${from.toString} to ${to.toString}")
+    routeService.getRoutes(from,
+      to
+    ).flatMap { list =>
       Future.sequence(
         list.map { route =>
           val routePoints = route.getPoints.asScala
             .sortBy(_.getIndex).toList
           userService.get(route.getDriverId).flatMap {
             case Some(user) =>
-              (if (withMap) {
+              if (withMap) {
                 getMapPic(date, user.getId, routePoints)
                   .map(Some.apply)
                   .map(file => (user.getName, file))
               } else {
                 Future.successful((user.getName, None))
-              })
+              }
             case None =>
               Future.successful(("Unassigned", None))
           }.map {
@@ -219,8 +231,7 @@ class ReportService @Inject()(val userService: UserService,
 
   def getMapPic(date: DateTime, id: Long, points: List[RoutePoint] = List.empty): Future[String] = {
     mapService.createMap(id,
-      date.withTime(0, 0, 0, 0),
-      date.plusDays(1).withTime(0, 0, 0, 0),
+      date.withTimeAtStartOfDay(), date.plusDays(1).withTimeAtStartOfDay(),
       650, reportMapHeight,
       points)
   }

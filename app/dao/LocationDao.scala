@@ -20,12 +20,8 @@ class LocationDao @Inject()(repo: LocationRepo)(implicit ec: ExecutionContext)
 
   override def ensureExists(): Future[CompletionMarker] = {
     super.ensureExists().flatMap { _ =>
-      for {
-        _ <- create(59.726646, 30.417719, 2)
-        _ <- create(59.722962, 30.412484, 2)
-        _ <- create(59.719363, 30.424157, 2)
-        _ <- create(59.714117, 30.426903, 2)
-      } yield CompletionMarker
+      //PUT some startup debug here
+      Future.successful(CompletionMarker)
     }
   }
 
